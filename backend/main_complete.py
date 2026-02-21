@@ -187,44 +187,155 @@ class LLMService:
     
     @staticmethod
     async def understand_feedback(feedback: str, current_params: Dict, audio_count: int) -> Dict[str, Any]:
-        """阶段2: 理解用户反馈，返回调整方案和提示"""
+        """
+        阶段2: 理解用户反馈，使用大模型分析并返回调整方案
         
-        # 判断是否需要提示上传更多音频
-        need_more_audio = audio_count < 2 and any(kw in feedback.lower() for kw in ["不像", "不像我", "不像本人", "差距", "差很远"])
+        返回包含:
+        - analysis: 大模型分析过程
+        - adjustments: 参数调整
+        - function_calls: 需要调用的功能列表
+        """
         
-        # 参数调整
-        adjustments = {}
+        if not KIMI_API_KEY:
+            # 备用：规则匹配
+            return LLMService._rule_based_feedback(feedback, current_params, audio_count)
+        
+        prompt = f"""分析用户反馈，确定语音合成参数调整方案。
+
+【当前参数】
+- 语速(speed): {current_params.get('speed', 1.0)}
+- 音调(pitch): {current_params.get('pitch', 0)}
+- 情感标签(emotion_tag): {current_params.get('emotion_tag', '无')}
+
+【可用调整工具】
+1. adjust_emotion: 调整情感标签
+   - 可选: (happy), (angry), (sad), (excited), (serious), (soft), (whispering), (shouting)
+   
+2. adjust_speed: 调整语速（音频后处理）
+   - 范围: 0.5-2.0, 1.0为正常
+   - 注意: 这是独立的后处理步骤，不是TTS参数
+   
+3. adjust_pitch: 调整音调
+   - 范围: -5到+5, 0为正常
+
+【用户反馈】
+"{feedback}"
+
+请分析：
+1. 用户反馈的具体含义
+2. 需要调用哪些调整工具
+3. 每个工具的具体参数
+4. 调整理由
+
+输出JSON格式：
+{{
+    "analysis": "详细分析过程...",
+    "adjustments": {{
+        "speed": 1.0,
+        "pitch": 0,
+        "emotion_tag": ""
+    }},
+    "function_calls": [
+        {{"function": "adjust_emotion", "params": {{"tag": "(happy)"}}, "reason": "..."}},
+        {{"function": "adjust_speed", "params": {{"speed": 0.9}}, "reason": "..."}}
+    ],
+    "tips": ["提示1", "提示2"]
+}}"""
+
+        async with http_client as client:
+            response = await client.post(
+                f"{KIMI_BASE_URL}/chat/completions",
+                headers={"Authorization": f"Bearer {KIMI_API_KEY}"},
+                json={
+                    "model": "moonshot-v1-8k",
+                    "messages": [{"role": "user", "content": prompt}],
+                    "temperature": 0.3
+                },
+                timeout=30.0
+            )
+            
+            if response.status_code == 200:
+                result = response.json()
+                content = result["choices"][0]["message"]["content"]
+                
+                try:
+                    if "```json" in content:
+                        content = content.split("```json")[1].split("```")[0]
+                    elif "```" in content:
+                        content = content.split("```")[1].split("```")[0]
+                    parsed = json.loads(content.strip())
+                    return parsed
+                except Exception as e:
+                    print(f"解析失败: {e}, 内容: {content}")
+        
+        # 失败时回退到规则匹配
+        return LLMService._rule_based_feedback(feedback, current_params, audio_count)
+    
+    @staticmethod
+    def _rule_based_feedback(feedback: str, current_params: Dict, audio_count: int) -> Dict[str, Any]:
+        """基于规则的反馈处理（备用）"""
         fb = feedback.lower()
+        adjustments = {}
+        function_calls = []
         
-        # 语速
+        # 语速调整 - 独立的 Function Call
         if any(w in fb for w in ["快", "急", "赶"]):
-            adjustments["speed"] = max(0.5, current_params.get("speed", 1.0) - 0.2)
+            new_speed = max(0.5, current_params.get("speed", 1.0) - 0.2)
+            adjustments["speed"] = new_speed
+            function_calls.append({
+                "function": "adjust_speed",
+                "params": {"speed": new_speed},
+                "reason": "用户反馈语速太快，需要减慢"
+            })
         elif any(w in fb for w in ["慢", "缓", "拖"]):
-            adjustments["speed"] = min(2.0, current_params.get("speed", 1.0) + 0.2)
+            new_speed = min(2.0, current_params.get("speed", 1.0) + 0.2)
+            adjustments["speed"] = new_speed
+            function_calls.append({
+                "function": "adjust_speed",
+                "params": {"speed": new_speed},
+                "reason": "用户反馈语速太慢，需要加快"
+            })
         
-        # 音调
+        # 音调调整
         if any(w in fb for w in ["尖", "细", "高", "刺耳"]):
-            adjustments["pitch"] = max(-5, current_params.get("pitch", 0) - 1)
+            new_pitch = max(-5, current_params.get("pitch", 0) - 1)
+            adjustments["pitch"] = new_pitch
+            function_calls.append({
+                "function": "adjust_pitch",
+                "params": {"pitch": new_pitch},
+                "reason": "用户反馈音调太尖，需要降低"
+            })
         elif any(w in fb for w in ["粗", "厚", "低", "沉", "闷"]):
-            adjustments["pitch"] = min(5, current_params.get("pitch", 0) + 1)
+            new_pitch = min(5, current_params.get("pitch", 0) + 1)
+            adjustments["pitch"] = new_pitch
+            function_calls.append({
+                "function": "adjust_pitch",
+                "params": {"pitch": new_pitch},
+                "reason": "用户反馈音调太低，需要提高"
+            })
         
-        # 年龄感
-        if any(w in fb for w in ["年轻", "嫩", "小孩", "太幼"]):
-            adjustments["emotion_tag"] = "(serious)"
-        elif any(w in fb for w in ["老", "成熟", "沧桑", "太老"]):
-            adjustments["emotion_tag"] = "(soft)"
-        
-        # 情感
+        # 情感调整
+        emotion = ""
         if any(w in fb for w in ["开心", "高兴", "活泼"]):
-            adjustments["emotion_tag"] = "(happy)"
+            emotion = "(happy)"
         elif any(w in fb for w in ["生气", "愤怒", "严肃"]):
-            adjustments["emotion_tag"] = "(angry)"
+            emotion = "(angry)"
         elif any(w in fb for w in ["温柔", "柔和", "软"]):
-            adjustments["emotion_tag"] = "(soft)"
+            emotion = "(soft)"
         elif any(w in fb for w in ["悲伤", "难过"]):
-            adjustments["emotion_tag"] = "(sad)"
+            emotion = "(sad)"
         
-        # 构建提示信息
+        if emotion:
+            adjustments["emotion_tag"] = emotion
+            function_calls.append({
+                "function": "adjust_emotion",
+                "params": {"tag": emotion},
+                "reason": f"根据反馈调整情感为{emotion}"
+            })
+        
+        # 是否需要更多音频
+        need_more_audio = audio_count < 2 and any(kw in fb for kw in ["不像", "不像我", "不像本人", "差距", "差很远"])
+        
         tips = []
         if need_more_audio:
             tips.append(f"💡 当前仅使用 {audio_count} 段音频克隆，效果可能不够稳定")
@@ -234,7 +345,9 @@ class LLMService:
             tips.append(f"✅ 已根据反馈调整参数")
         
         return {
+            "analysis": f"基于规则分析: 识别到关键词 '{fb}'，触发 {len(function_calls)} 个调整",
             "adjustments": adjustments,
+            "function_calls": function_calls,
             "need_more_audio": need_more_audio,
             "current_audio_count": audio_count,
             "tips": tips,
@@ -555,12 +668,16 @@ async def feedback(
         "version": session.version,
         "feedback": feedback,
         "adjustments": adjustments,
+        "analysis": result.get("analysis", ""),
+        "function_calls": result.get("function_calls", []),
         "tips": result.get("tips", [])
     })
     
     return {
         "session_id": session_id,
         "phase": "optimized",
+        "analysis": result.get("analysis", ""),  # 大模型分析过程
+        "function_calls": result.get("function_calls", []),  # 调用的功能列表
         "adjustments": adjustments,
         "current_params": session.current_params,
         "audio_count": len(session.reference_audios),
