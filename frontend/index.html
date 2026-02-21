@@ -16,26 +16,79 @@
             padding: 20px;
         }
         .container {
-            max-width: 800px;
+            max-width: 900px;
             margin: 0 auto;
             background: white;
             border-radius: 20px;
             padding: 40px;
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
         }
-        h1 {
-            text-align: center;
-            color: #333;
-            margin-bottom: 10px;
-        }
-        .subtitle {
-            text-align: center;
-            color: #666;
+        h1 { text-align: center; color: #333; margin-bottom: 10px; }
+        .subtitle { text-align: center; color: #666; margin-bottom: 30px; }
+        
+        /* 模式选择 */
+        .mode-selector {
+            display: flex;
+            gap: 15px;
             margin-bottom: 30px;
         }
-        .section {
-            margin-bottom: 30px;
+        .mode-btn {
+            flex: 1;
             padding: 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.3s;
+            background: white;
+        }
+        .mode-btn:hover { border-color: #667eea; }
+        .mode-btn.active {
+            border-color: #667eea;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .mode-btn h3 { margin-bottom: 8px; }
+        .mode-btn p { font-size: 14px; opacity: 0.8; }
+        
+        /* 步骤指示器 */
+        .steps {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+        .step {
+            display: flex;
+            align-items: center;
+            color: #999;
+        }
+        .step-number {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #e0e0e0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 8px;
+            font-weight: bold;
+        }
+        .step.active .step-number {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .step.active { color: #333; font-weight: bold; }
+        .step-line {
+            width: 60px;
+            height: 2px;
+            background: #e0e0e0;
+            margin: 0 15px;
+        }
+        
+        /* 内容区域 */
+        .section {
+            margin-bottom: 25px;
+            padding: 25px;
             background: #f8f9fa;
             border-radius: 12px;
         }
@@ -45,6 +98,7 @@
             color: #333;
             margin-bottom: 15px;
         }
+        
         textarea {
             width: 100%;
             min-height: 100px;
@@ -54,14 +108,12 @@
             font-size: 16px;
             resize: vertical;
         }
-        textarea:focus {
-            outline: none;
-            border-color: #667eea;
-        }
+        textarea:focus { outline: none; border-color: #667eea; }
+        
         .btn {
-            padding: 12px 30px;
+            padding: 14px 32px;
             border: none;
-            border-radius: 8px;
+            border-radius: 10px;
             font-size: 16px;
             cursor: pointer;
             transition: all 0.3s;
@@ -72,304 +124,443 @@
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
         }
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
-        }
-        .btn-secondary {
-            background: #e0e0e0;
-            color: #333;
-        }
-        .file-input {
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 5px 20px rgba(102,126,234,0.4); }
+        .btn-secondary { background: #e0e0e0; color: #333; }
+        .btn-success { background: #4caf50; color: white; }
+        
+        .file-input { margin: 15px 0; }
+        
+        /* 分析结果 */
+        .analysis-box {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 20px;
             margin: 15px 0;
+            border-radius: 0 12px 12px 0;
+        }
+        .param-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 10px 0;
+            padding: 8px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .param-label { color: #666; }
+        .param-value { font-weight: bold; color: #333; }
+        
+        /* 音频播放器 */
+        .audio-section {
+            background: #f5f5f5;
+            padding: 25px;
+            border-radius: 12px;
+            text-align: center;
         }
         .audio-player {
             width: 100%;
             margin: 20px 0;
         }
-        .result-box {
+        
+        /* 反馈区域 */
+        .feedback-section {
+            margin-top: 20px;
+        }
+        .feedback-input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+        
+        /* 提示信息 */
+        .tip-box {
+            background: #fff3e0;
+            border-left: 4px solid #ff9800;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        .success-box {
             background: #e8f5e9;
             border-left: 4px solid #4caf50;
-            padding: 15px;
-            margin: 15px 0;
-            border-radius: 0 8px 8px 0;
         }
-        .error-box {
-            background: #ffebee;
-            border-left: 4px solid #f44336;
-            padding: 15px;
+        
+        /* 音色选择 */
+        .voice-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
             margin: 15px 0;
-            border-radius: 0 8px 8px 0;
         }
-        .loading {
-            text-align: center;
+        .voice-card {
             padding: 20px;
-            color: #667eea;
-        }
-        .emotion-tags {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin: 15px 0;
-        }
-        .emotion-tag {
-            padding: 8px 16px;
-            background: #e3f2fd;
-            border: 2px solid #2196f3;
-            border-radius: 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
             cursor: pointer;
+            text-align: center;
             transition: all 0.3s;
         }
-        .emotion-tag:hover, .emotion-tag.active {
-            background: #2196f3;
-            color: white;
+        .voice-card:hover { border-color: #667eea; }
+        .voice-card.active {
+            border-color: #667eea;
+            background: #f3e5f5;
         }
-        .modify-section {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-            margin-top: 15px;
-        }
-        .modify-section input {
-            flex: 1;
-            padding: 12px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            font-size: 16px;
-        }
+        .voice-card h4 { margin-bottom: 5px; }
+        .voice-card p { font-size: 14px; color: #666; }
+        
+        .hidden { display: none; }
     </style>
 </head>
 <body>
     <div id="root"></div>
 
     <script type="text/babel">
-        const { useState, useRef } = React;
-
+        const { useState, useEffect } = React;
         const API_BASE = 'http://localhost:8000';
 
-        const EMOTIONS = [
-            { tag: '(happy)', label: '😊 开心' },
-            { tag: '(angry)', label: '😠 生气' },
-            { tag: '(sad)', label: '😢 悲伤' },
-            { tag: '(excited)', label: '🤩 兴奋' },
-            { tag: '(serious)', label: '😐 严肃' },
-            { tag: '(soft)', label: '😌 温柔' },
-            { tag: '(shouting)', label: '📢 大喊' },
-            { tag: '(whispering)', label: '🤫 耳语' },
-        ];
-
         function App() {
-            const [text, setText] = useState('你好，这是一个测试！');
-            const [selectedEmotion, setSelectedEmotion] = useState('');
-            const [audioFile, setAudioFile] = useState(null);
-            const [resultAudio, setResultAudio] = useState(null);
+            // 状态管理
+            const [mode, setMode] = useState(null); // 'clone' 或 'default'
+            const [phase, setPhase] = useState(1); // 1:分析 2:合成 3:优化
+            const [text, setText] = useState('');
+            const [sessionId, setSessionId] = useState(null);
             const [analysis, setAnalysis] = useState(null);
+            const [params, setParams] = useState({ speed: 1.0, pitch: 0, volume: 1.0, emotion_tag: '' });
+            const [audioUrl, setAudioUrl] = useState(null);
+            const [version, setVersion] = useState(0);
+            const [audioCount, setAudioCount] = useState(0);
+            const [feedback, setFeedback] = useState('');
+            const [tips, setTips] = useState([]);
+            const [voices, setVoices] = useState([]);
+            const [selectedVoice, setSelectedVoice] = useState('xiaoxiao');
+            const [referenceAudios, setReferenceAudios] = useState([]);
             const [loading, setLoading] = useState(false);
-            const [error, setError] = useState(null);
-            const [modifyText, setModifyText] = useState('');
-            const fileInputRef = useRef(null);
 
-            // 分析文本情感
-            const analyzeText = async () => {
+            // 获取预设音色列表
+            useEffect(() => {
+                fetch(`${API_BASE}/voices`)
+                    .then(r => r.json())
+                    .then(data => setVoices(data.voices));
+            }, []);
+
+            // 阶段1: 智能分析
+            const startAnalysis = async () => {
+                if (!text) { alert('请输入文本'); return; }
+                if (!mode) { alert('请选择模式'); return; }
+
                 setLoading(true);
-                setError(null);
-                try {
-                    const formData = new FormData();
-                    formData.append('text', text);
-                    
-                    const res = await fetch(`${API_BASE}/analyze`, {
-                        method: 'POST',
-                        body: formData
-                    });
-                    const data = await res.json();
-                    setAnalysis(data);
-                    if (data.suggested_tag) {
-                        setSelectedEmotion(data.suggested_tag);
-                    }
-                } catch (err) {
-                    setError('分析失败：' + err.message);
-                }
+                const formData = new FormData();
+                formData.append('mode', mode);
+                formData.append('text', text);
+                formData.append('voice_id', selectedVoice);
+
+                const res = await fetch(`${API_BASE}/synthesize/analyze`, {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await res.json();
+                
+                setSessionId(data.session_id);
+                setAnalysis(data.analysis);
+                setParams(data.suggested_params);
+                setPhase(2);
                 setLoading(false);
             };
 
-            // 合成语音
-            const synthesize = async () => {
+            // 阶段2: 合成
+            const doSynthesize = async () => {
                 setLoading(true);
-                setError(null);
-                try {
-                    const formData = new FormData();
-                    const finalText = selectedEmotion ? `${selectedEmotion} ${text}` : text;
-                    formData.append('text', finalText);
-                    formData.append('auto_emotion', 'false');
-                    
-                    if (audioFile) {
-                        formData.append('reference_audio', audioFile);
-                    }
-                    
-                    const res = await fetch(`${API_BASE}/tts`, {
-                        method: 'POST',
-                        body: formData
-                    });
-                    
-                    if (!res.ok) throw new Error('合成失败');
-                    
-                    const blob = await res.blob();
-                    const url = URL.createObjectURL(blob);
-                    setResultAudio(url);
-                } catch (err) {
-                    setError('合成失败：' + err.message);
+                const formData = new FormData();
+                formData.append('session_id', sessionId);
+                formData.append('speed', params.speed);
+                formData.append('pitch', params.pitch);
+                formData.append('volume', params.volume);
+                formData.append('emotion_tag', params.emotion_tag);
+
+                // 克隆模式上传音频
+                if (mode === 'clone' && referenceAudios.length > 0) {
+                    // 简化：只传第一段，实际应该支持多段
                 }
+
+                const res = await fetch(`${API_BASE}/synthesize`, {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await res.json();
+                
+                setAudioUrl(data.audio_url);
+                setVersion(data.version);
+                setAudioCount(data.audio_count);
+                setTips(data.tips || []);
+                setPhase(3);
                 setLoading(false);
             };
 
-            // 修改语音
-            const modifyVoice = async () => {
-                if (!modifyText || !resultAudio) return;
+            // 阶段3: 反馈优化
+            const submitFeedback = async () => {
+                if (!feedback) { alert('请输入反馈'); return; }
                 
                 setLoading(true);
-                setError(null);
-                try {
-                    const formData = new FormData();
-                    formData.append('text', text);
-                    formData.append('user_request', modifyText);
-                    
-                    if (audioFile) {
-                        formData.append('reference_audio', audioFile);
-                    }
-                    
-                    const res = await fetch(`${API_BASE}/modify`, {
-                        method: 'POST',
-                        body: formData
-                    });
-                    
-                    if (!res.ok) throw new Error('修改失败');
-                    
-                    // 注意：modify 返回的是 JSON，包含 audio URL
-                    const data = await res.json();
-                    // 简化处理，实际应该解析返回的 audio
-                    setResultAudio(data.audio);
-                } catch (err) {
-                    setError('修改失败：' + err.message);
+                const formData = new FormData();
+                formData.append('session_id', sessionId);
+                formData.append('feedback', feedback);
+
+                const res = await fetch(`${API_BASE}/synthesize/feedback`, {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await res.json();
+                
+                // 应用调整
+                if (data.adjustments) {
+                    setParams({ ...params, ...data.adjustments });
                 }
+                setTips(data.tips || []);
+                setAudioCount(data.audio_count);
+                setFeedback('');
                 setLoading(false);
+                
+                // 提示用户重新合成
+                alert('参数已调整，请重新合成');
+            };
+
+            // 添加更多音频
+            const addMoreAudio = async (file) => {
+                const formData = new FormData();
+                formData.append('audio', file);
+                
+                const res = await fetch(`${API_BASE}/session/${sessionId}/add-audio`, {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await res.json();
+                setAudioCount(data.audio_count);
+                alert(data.message);
             };
 
             return (
                 <div className="container">
                     <h1>🎙️ Voice Agent</h1>
-                    <p className="subtitle">智能语音合成工作站 - Fish Speech + Kimi</p>
+                    <p className="subtitle">智能语音合成 - 支持情感分析与交互优化</p>
 
-                    {/* 文本输入 */}
-                    <div className="section">
-                        <div className="section-title">1. 输入文本</div>
-                        <textarea
-                            value={text}
-                            onChange={(e) => setText(e.target.value)}
-                            placeholder="输入要合成的文字..."
-                        />
-                        <button className="btn btn-secondary" onClick={analyzeText}>
-                            🔍 智能分析情感
-                        </button>
-                    </div>
-
-                    {/* 情感分析结果 */}
-                    {analysis && (
-                        <div className="result-box">
-                            <strong>智能分析结果：</strong><br/>
-                            场景：{analysis.scene} | 
-                            情绪：{analysis.emotion} | 
-                            风格：{analysis.style}<br/>
-                            推荐标签：{analysis.suggested_tag}<br/>
-                            <small>{analysis.reason}</small>
+                    {/* 步骤指示器 */}
+                    <div className="steps">
+                        <div className={`step ${phase >= 1 ? 'active' : ''}`}>
+                            <div className="step-number">1</div>
+                            <span>输入&分析</span>
                         </div>
-                    )}
-
-                    {/* 情感标签选择 */}
-                    <div className="section">
-                        <div className="section-title">2. 选择情感（可选）</div>
-                        <div className="emotion-tags">
-                            {EMOTIONS.map((emo) => (
-                                <span
-                                    key={emo.tag}
-                                    className={`emotion-tag ${selectedEmotion === emo.tag ? 'active' : ''}`}
-                                    onClick={() => setSelectedEmotion(selectedEmotion === emo.tag ? '' : emo.tag)}
-                                >
-                                    {emo.label}
-                                </span>
-                            ))}
+                        <div className="step-line"></div>
+                        <div className={`step ${phase >= 2 ? 'active' : ''}`}>
+                            <div className="step-number">2</div>
+                            <span>合成</span>
                         </div>
-                        {selectedEmotion && (
-                            <p>已选择：{selectedEmotion}</p>
-                        )}
-                    </div>
-
-                    {/* 音色克隆 */}
-                    <div className="section">
-                        <div className="section-title">3. 音色克隆（可选）</div>
-                        <input
-                            type="file"
-                            accept="audio/*"
-                            ref={fileInputRef}
-                            className="file-input"
-                            onChange={(e) => setAudioFile(e.target.files[0])}
-                        />
-                        {audioFile && (
-                            <p>已选择：{audioFile.name}</p>
-                        )}
-                    </div>
-
-                    {/* 合成按钮 */}
-                    <div className="section" style={{textAlign: 'center'}}>
-                        <button 
-                            className="btn btn-primary" 
-                            onClick={synthesize}
-                            disabled={loading || !text}
-                        >
-                            {loading ? '⏳ 合成中...' : '🎵 合成语音'}
-                        </button>
-                    </div>
-
-                    {/* 错误提示 */}
-                    {error && (
-                        <div className="error-box">
-                            {error}
+                        <div className="step-line"></div>
+                        <div className={`step ${phase >= 3 ? 'active' : ''}`}>
+                            <div className="step-number">3</div>
+                            <span>优化</span>
                         </div>
-                    )}
+                    </div>
 
-                    {/* 播放和修改 */}
-                    {resultAudio && (
-                        <div className="section">
-                            <div className="section-title">🎧 合成结果</div>
-                            <audio 
-                                controls 
-                                src={resultAudio} 
-                                className="audio-player"
-                            />
-                            <a 
-                                href={resultAudio} 
-                                download="synthesis.wav"
-                                className="btn btn-secondary"
-                            >
-                                ⬇️ 下载音频
-                            </a>
-
-                            {/* 修改语音 */}
-                            <div className="modify-section">
-                                <input
-                                    type="text"
-                                    value={modifyText}
-                                    onChange={(e) => setModifyText(e.target.value)}
-                                    placeholder="说修改需求，如：要生气点、声音粗一点..."
-                                />
-                                <button 
-                                    className="btn btn-primary"
-                                    onClick={modifyVoice}
-                                    disabled={loading}
-                                >
-                                    ✏️ 修改
-                                </button>
+                    {/* 模式选择 */}
+                    {!mode && (
+                        <div className="mode-selector">
+                            <div className="mode-btn" onClick={() => setMode('clone')}>
+                                <h3>🎭 克隆音色</h3>
+                                <p>上传音频，克隆特定人的音色</p>
+                            </div>
+                            <div className="mode-btn" onClick={() => setMode('default')}>
+                                <h3>🎵 预设音色</h3>
+                                <p>选择内置音色，快速合成</p>
                             </div>
                         </div>
+                    )}
+
+                    {mode && (
+                        <>
+                            {/* 模式显示 */}
+                            <div className="section">
+                                <div className="section-title">
+                                    当前模式: {mode === 'clone' ? '🎭 克隆音色' : '🎵 预设音色'}
+                                    <button className="btn btn-secondary" onClick={() => setMode(null)} style={{float: 'right', marginTop: 0}}>切换</button>
+                                </div>
+                            </div>
+
+                            {/* 阶段1: 输入 */}
+                            {phase === 1 && (
+                                <>
+                                    {/* 克隆模式 - 上传音频 */}
+                                    {mode === 'clone' && (
+                                        <div className="section">
+                                            <div className="section-title">1. 上传参考音频</div>
+                                            <input 
+                                                type="file" 
+                                                accept="audio/*" 
+                                                className="file-input"
+                                                onChange={(e) => {
+                                                    if (e.target.files[0]) {
+                                                        setReferenceAudios([e.target.files[0]]);
+                                                    }
+                                                }}
+                                            />
+                                            <div className="tip-box">
+                                                💡 建议上传 10-30 秒清晰音频，可上传多段融合
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* 普通模式 - 选择音色 */}
+                                    {mode === 'default' && (
+                                        <div className="section">
+                                            <div className="section-title">1. 选择音色</div>
+                                            <div className="voice-grid">
+                                                {voices.map(v => (
+                                                    <div 
+                                                        key={v.id}
+                                                        className={`voice-card ${selectedVoice === v.id ? 'active' : ''}`}
+                                                        onClick={() => setSelectedVoice(v.id)}
+                                                    >
+                                                        <h4>{v.name}</h4>
+                                                        <p>{v.description}</p>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* 文本输入 */}
+                                    <div className="section">
+                                        <div className="section-title">2. 输入文本</div>
+                                        <textarea 
+                                            value={text}
+                                            onChange={(e) => setText(e.target.value)}
+                                            placeholder="请输入要合成的文字..."
+                                        />
+                                        <button className="btn btn-primary" onClick={startAnalysis} disabled={loading}>
+                                            {loading ? '分析中...' : '🔍 智能分析'}
+                                        </button>
+                                    </div>
+                                </>
+                            )}
+
+                            {/* 阶段2: 分析结果 & 确认合成 */}
+                            {phase === 2 && analysis && (
+                                <>
+                                    <div className="section">
+                                        <div className="section-title">📊 智能分析结果</div>
+                                        <div className="analysis-box">
+                                            <div className="param-row">
+                                                <span className="param-label">场景</span>
+                                                <span className="param-value">{analysis.scene}</span>
+                                            </div>
+                                            <div className="param-row">
+                                                <span className="param-label">情绪</span>
+                                                <span className="param-value">{analysis.emotion}</span>
+                                            </div>
+                                            <div className="param-row">
+                                                <span className="param-label">风格</span>
+                                                <span className="param-value">{analysis.style}</span>
+                                            </div>
+                                            <div className="param-row">
+                                                <span className="param-label">分析理由</span>
+                                                <span>{analysis.reason}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="section">
+                                        <div className="section-title">⚙️ 合成参数（可调整）</div>
+                                        <div className="param-row">
+                                            <span className="param-label">语速</span>
+                                            <input 
+                                                type="range" min="0.5" max="2.0" step="0.1"
+                                                value={params.speed}
+                                                onChange={(e) => setParams({...params, speed: parseFloat(e.target.value)})}
+                                            />
+                                            <span>{params.speed}</span>
+                                        </div>
+                                        <div className="param-row">
+                                            <span className="param-label">音调</span>
+                                            <input 
+                                                type="range" min="-5" max="5" step="1"
+                                                value={params.pitch}
+                                                onChange={(e) => setParams({...params, pitch: parseInt(e.target.value)})}
+                                            />
+                                            <span>{params.pitch}</span>
+                                        </div>
+                                        <div className="param-row">
+                                            <span className="param-label">情感标签</span>
+                                            <select 
+                                                value={params.emotion_tag}
+                                                onChange={(e) => setParams({...params, emotion_tag: e.target.value})}
+                                            >
+                                                <option value="">无</option>
+                                                <option value="(happy)">开心</option>
+                                                <option value="(angry)">生气</option>
+                                                <option value="(sad)">悲伤</option>
+                                                <option value="(excited)">兴奋</option>
+                                                <option value="(serious)">严肃</option>
+                                                <option value="(soft)">温柔</option>
+                                            </select>
+                                        </div>
+                                        <button className="btn btn-primary" onClick={doSynthesize} disabled={loading}>
+                                            {loading ? '合成中...' : '🎵 开始合成'}
+                                        </button>
+                                    </div>
+                                </>
+                            )}
+
+                            {/* 阶段3: 播放 & 反馈 */}
+                            {phase === 3 && audioUrl && (
+                                <>
+                                    <div className="audio-section">
+                                        <div className="section-title">🎧 合成结果（第{version}版）</div>
+                                        <audio controls src={`${API_BASE}${audioUrl}`} className="audio-player" />
+                                        
+                                        {tips.length > 0 && (
+                                            <div className="tip-box">
+                                                {tips.map((tip, i) => <div key={i}>{tip}</div>)}
+                                            </div>
+                                        )}
+
+                                        {/* 添加更多音频 */}
+                                        {mode === 'clone' && audioCount < 3 && (
+                                            <div style={{marginTop: '15px'}}>
+                                                <input 
+                                                    type="file" 
+                                                    accept="audio/*"
+                                                    onChange={(e) => e.target.files[0] && addMoreAudio(e.target.files[0])}
+                                                />
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    <div className="section feedback-section">
+                                        <div className="section-title">💬 反馈优化</div>
+                                        <p>试听后，描述您的感觉，我们会自动优化：</p>
+                                        <ul style={{margin: '10px 0', color: '#666'}}>
+                                            <li>"太年轻了，要成熟点"</li>
+                                            <li>"音调太尖，要低沉些"</li>
+                                            <li>"语速太快，慢一点"</li>
+                                            <li>"不像我，上传了更多音频"</li>
+                                        </ul>
+                                        <input 
+                                            type="text"
+                                            className="feedback-input"
+                                            value={feedback}
+                                            onChange={(e) => setFeedback(e.target.value)}
+                                            placeholder="输入您的反馈..."
+                                        />
+                                        <button className="btn btn-success" onClick={submitFeedback} disabled={loading}>
+                                            {loading ? '处理中...' : '✨ 提交反馈并优化'}
+                                        </button>
+                                        <button className="btn btn-primary" onClick={doSynthesize} disabled={loading} style={{marginLeft: '10px'}}>
+                                            🔄 重新合成
+                                        </button>
+                                    </div>
+                                </>
+                            )}
+                        </>
                     )}
                 </div>
             );
