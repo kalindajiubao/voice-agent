@@ -28,7 +28,7 @@ if [ ! -d "/root/autodl-tmp" ]; then
 fi
 
 # 检查 GPU
-if ! command -v nvidia-smi &> /dev/null; then
+if ! which nvidia-smi > /dev/null 2>&1; then
     echo -e "${RED}错误: 未检测到 GPU，请确认实例类型${NC}"
     exit 1
 fi
@@ -37,7 +37,7 @@ echo -e "${GREEN}✓ GPU 检测正常${NC}"
 nvidia-smi --query-gpu=name,memory.total --format=csv,noheader
 
 # 检查 CUDA
-if ! command -v nvcc &> /dev/null; then
+if ! which nvcc > /dev/null 2>&1; then
     echo -e "${RED}错误: 未检测到 CUDA${NC}"
     exit 1
 fi
