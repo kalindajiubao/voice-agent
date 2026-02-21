@@ -22,6 +22,9 @@ AUTODL_BASE_URL = os.getenv("AUTODL_BASE_URL", "http://localhost:7860")
 KIMI_API_KEY = os.getenv("KIMI_API_KEY", "")
 KIMI_BASE_URL = "https://api.moonshot.cn/v1"
 
+# 创建 HTTP 客户端（支持 HTTPS 跳过验证）
+http_client = httpx.AsyncClient(verify=False, timeout=60.0)
+
 # ==================== 预设音色（Fish Speech 参考音频）====================
 # 实际应该预置一些参考音频文件，这里用配置占位
 DEFAULT_VOICES = {
@@ -98,7 +101,7 @@ class LLMService:
     "reason": "分析理由"
 }}"""
 
-        async with httpx.AsyncClient() as client:
+        async with http_client as client:
             response = await client.post(
                 f"{KIMI_BASE_URL}/chat/completions",
                 headers={"Authorization": f"Bearer {KIMI_API_KEY}"},
@@ -218,7 +221,7 @@ class FishSpeechService:
                 final_text = f"{params['emotion_tag']} {final_text}"
             # Fish Speech 原生支持通过标签调节，这里简化处理
         
-        async with httpx.AsyncClient() as client:
+        async with http_client as client:
             if reference_audio:
                 # 克隆模式 - 使用上传的音频
                 files = {"reference_audio": ("audio.wav", reference_audio, "audio/wav")}
