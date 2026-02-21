@@ -15,6 +15,9 @@ KIMI_BASE_URL = "https://api.moonshot.cn/v1"
 # AutoDL Fish Speech 配置
 AUTODL_BASE_URL = os.getenv("AUTODL_BASE_URL", "http://localhost:7860")
 
+# 音色配置路径
+VOICE_CONFIG_PATH = os.path.join(os.path.dirname(__file__), "..", "assets", "voices", "voice_config.json")
+
 app = FastAPI(title="Voice Agent API", version="1.0.0")
 
 # CORS 配置
@@ -339,6 +342,39 @@ async def modify_voice(
         "modified_params": modified_params,
         "audio": FileResponse(tmp_path, media_type="audio/wav", filename="modified.wav")
     }
+
+
+@app.get("/voices")
+async def get_voices():
+    """获取预设音色列表"""
+    try:
+        with open(VOICE_CONFIG_PATH, 'r', encoding='utf-8') as f:
+            config = json.load(f)
+        
+        voices = []
+        for voice_id, voice_data in config.items():
+            voices.append({
+                "id": voice_id,
+                "name": voice_data.get("name", voice_id),
+                "description": voice_data.get("desc", ""),
+                "voice": voice_data.get("voice", ""),
+                "text": voice_data.get("text", "")
+            })
+        
+        return {"voices": voices}
+    except Exception as e:
+        # 如果读取失败，返回默认音色
+        return {
+            "voices": [
+                {"id": "zh_female_gentle", "name": "温柔女声", "description": "适合讲故事、客服场景"},
+                {"id": "zh_female_lively", "name": "活泼女声", "description": "适合短视频、广告"},
+                {"id": "zh_male_calm", "name": "沉稳男声", "description": "适合商务、正式场合"},
+                {"id": "zh_male_young", "name": "年轻男声", "description": "适合游戏、动漫"},
+                {"id": "en_female_warm", "name": "Warm Female", "description": "Friendly and approachable"},
+                {"id": "en_female_professional", "name": "Professional Female", "description": "Business and corporate"},
+                {"id": "en_male_friendly", "name": "Friendly Male", "description": "Casual and relaxed"},
+            ]
+        }
 
 
 @app.get("/health")
