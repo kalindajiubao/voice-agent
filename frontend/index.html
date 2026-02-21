@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voice Agent - 智能语音合成</title>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+        }
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 12px;
+        }
+        .section-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 15px;
+        }
+        textarea {
+            width: 100%;
+            min-height: 100px;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            resize: vertical;
+        }
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-right: 10px;
+            margin-top: 10px;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+        .btn-secondary {
+            background: #e0e0e0;
+            color: #333;
+        }
+        .file-input {
+            margin: 15px 0;
+        }
+        .audio-player {
+            width: 100%;
+            margin: 20px 0;
+        }
+        .result-box {
+            background: #e8f5e9;
+            border-left: 4px solid #4caf50;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        .error-box {
+            background: #ffebee;
+            border-left: 4px solid #f44336;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #667eea;
+        }
+        .emotion-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 15px 0;
+        }
+        .emotion-tag {
+            padding: 8px 16px;
+            background: #e3f2fd;
+            border: 2px solid #2196f3;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .emotion-tag:hover, .emotion-tag.active {
+            background: #2196f3;
+            color: white;
+        }
+        .modify-section {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-top: 15px;
+        }
+        .modify-section input {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useRef } = React;
+
+        const API_BASE = 'http://localhost:8000';
+
+        const EMOTIONS = [
+            { tag: '(happy)', label: '😊 开心' },
+            { tag: '(angry)', label: '😠 生气' },
+            { tag: '(sad)', label: '😢 悲伤' },
+            { tag: '(excited)', label: '🤩 兴奋' },
+            { tag: '(serious)', label: '😐 严肃' },
+            { tag: '(soft)', label: '😌 温柔' },
+            { tag: '(shouting)', label: '📢 大喊' },
+            { tag: '(whispering)', label: '🤫 耳语' },
+        ];
+
+        function App() {
+            const [text, setText] = useState('你好，这是一个测试！');
+            const [selectedEmotion, setSelectedEmotion] = useState('');
+            const [audioFile, setAudioFile] = useState(null);
+            const [resultAudio, setResultAudio] = useState(null);
+            const [analysis, setAnalysis] = useState(null);
+            const [loading, setLoading] = useState(false);
+            const [error, setError] = useState(null);
+            const [modifyText, setModifyText] = useState('');
+            const fileInputRef = useRef(null);
+
+            // 分析文本情感
+            const analyzeText = async () => {
+                setLoading(true);
+                setError(null);
+                try {
+                    const formData = new FormData();
+                    formData.append('text', text);
+                    
+                    const res = await fetch(`${API_BASE}/analyze`, {
+                        method: 'POST',
+                        body: formData
+                    });
+                    const data = await res.json();
+                    setAnalysis(data);
+                    if (data.suggested_tag) {
+                        setSelectedEmotion(data.suggested_tag);
+                    }
+                } catch (err) {
+                    setError('分析失败：' + err.message);
+                }
+                setLoading(false);
+            };
+
+            // 合成语音
+            const synthesize = async () => {
+                setLoading(true);
+                setError(null);
+                try {
+                    const formData = new FormData();
+                    const finalText = selectedEmotion ? `${selectedEmotion} ${text}` : text;
+                    formData.append('text', finalText);
+                    formData.append('auto_emotion', 'false');
+                    
+                    if (audioFile) {
+                        formData.append('reference_audio', audioFile);
+                    }
+                    
+                    const res = await fetch(`${API_BASE}/tts`, {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    if (!res.ok) throw new Error('合成失败');
+                    
+                    const blob = await res.blob();
+                    const url = URL.createObjectURL(blob);
+                    setResultAudio(url);
+                } catch (err) {
+                    setError('合成失败：' + err.message);
+                }
+                setLoading(false);
+            };
+
+            // 修改语音
+            const modifyVoice = async () => {
+                if (!modifyText || !resultAudio) return;
+                
+                setLoading(true);
+                setError(null);
+                try {
+                    const formData = new FormData();
+                    formData.append('text', text);
+                    formData.append('user_request', modifyText);
+                    
+                    if (audioFile) {
+                        formData.append('reference_audio', audioFile);
+                    }
+                    
+                    const res = await fetch(`${API_BASE}/modify`, {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    if (!res.ok) throw new Error('修改失败');
+                    
+                    // 注意：modify 返回的是 JSON，包含 audio URL
+                    const data = await res.json();
+                    // 简化处理，实际应该解析返回的 audio
+                    setResultAudio(data.audio);
+                } catch (err) {
+                    setError('修改失败：' + err.message);
+                }
+                setLoading(false);
+            };
+
+            return (
+                <div className="container">
+                    <h1>🎙️ Voice Agent</h1>
+                    <p className="subtitle">智能语音合成工作站 - Fish Speech + Kimi</p>
+
+                    {/* 文本输入 */}
+                    <div className="section">
+                        <div className="section-title">1. 输入文本</div>
+                        <textarea
+                            value={text}
+                            onChange={(e) => setText(e.target.value)}
+                            placeholder="输入要合成的文字..."
+                        />
+                        <button className="btn btn-secondary" onClick={analyzeText}>
+                            🔍 智能分析情感
+                        </button>
+                    </div>
+
+                    {/* 情感分析结果 */}
+                    {analysis && (
+                        <div className="result-box">
+                            <strong>智能分析结果：</strong><br/>
+                            场景：{analysis.scene} | 
+                            情绪：{analysis.emotion} | 
+                            风格：{analysis.style}<br/>
+                            推荐标签：{analysis.suggested_tag}<br/>
+                            <small>{analysis.reason}</small>
+                        </div>
+                    )}
+
+                    {/* 情感标签选择 */}
+                    <div className="section">
+                        <div className="section-title">2. 选择情感（可选）</div>
+                        <div className="emotion-tags">
+                            {EMOTIONS.map((emo) => (
+                                <span
+                                    key={emo.tag}
+                                    className={`emotion-tag ${selectedEmotion === emo.tag ? 'active' : ''}`}
+                                    onClick={() => setSelectedEmotion(selectedEmotion === emo.tag ? '' : emo.tag)}
+                                >
+                                    {emo.label}
+                                </span>
+                            ))}
+                        </div>
+                        {selectedEmotion && (
+                            <p>已选择：{selectedEmotion}</p>
+                        )}
+                    </div>
+
+                    {/* 音色克隆 */}
+                    <div className="section">
+                        <div className="section-title">3. 音色克隆（可选）</div>
+                        <input
+                            type="file"
+                            accept="audio/*"
+                            ref={fileInputRef}
+                            className="file-input"
+                            onChange={(e) => setAudioFile(e.target.files[0])}
+                        />
+                        {audioFile && (
+                            <p>已选择：{audioFile.name}</p>
+                        )}
+                    </div>
+
+                    {/* 合成按钮 */}
+                    <div className="section" style={{textAlign: 'center'}}>
+                        <button 
+                            className="btn btn-primary" 
+                            onClick={synthesize}
+                            disabled={loading || !text}
+                        >
+                            {loading ? '⏳ 合成中...' : '🎵 合成语音'}
+                        </button>
+                    </div>
+
+                    {/* 错误提示 */}
+                    {error && (
+                        <div className="error-box">
+                            {error}
+                        </div>
+                    )}
+
+                    {/* 播放和修改 */}
+                    {resultAudio && (
+                        <div className="section">
+                            <div className="section-title">🎧 合成结果</div>
+                            <audio 
+                                controls 
+                                src={resultAudio} 
+                                className="audio-player"
+                            />
+                            <a 
+                                href={resultAudio} 
+                                download="synthesis.wav"
+                                className="btn btn-secondary"
+                            >
+                                ⬇️ 下载音频
+                            </a>
+
+                            {/* 修改语音 */}
+                            <div className="modify-section">
+                                <input
+                                    type="text"
+                                    value={modifyText}
+                                    onChange={(e) => setModifyText(e.target.value)}
+                                    placeholder="说修改需求，如：要生气点、声音粗一点..."
+                                />
+                                <button 
+                                    className="btn btn-primary"
+                                    onClick={modifyVoice}
+                                    disabled={loading}
+                                >
+                                    ✏️ 修改
+                                </button>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+    </script>
+</body>
+</html>
