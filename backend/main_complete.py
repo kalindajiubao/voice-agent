@@ -6,6 +6,7 @@ import httpx
 import os
 import json
 import tempfile
+import re
 from dotenv import load_dotenv
 
 # 加载 .env 文件
@@ -28,6 +29,45 @@ KIMI_BASE_URL = "https://api.moonshot.cn/v1"
 
 # 创建 HTTP 客户端（支持 HTTPS 跳过验证）
 http_client = httpx.AsyncClient(verify=False, timeout=60.0)
+
+# ==================== 音频处理 ====================
+
+class AudioProcessor:
+    """音频后处理 - 调整语速、音调"""
+    
+    @staticmethod
+    def adjust_speed(audio_bytes: bytes, speed: float) -> bytes:
+        """
+        调整音频语速
+        speed: 1.0=正常, >1=加快, <1=减慢
+        """
+        try:
+            from pydub import AudioSegment
+            import io
+            
+            # 加载音频
+            audio = AudioSegment.from_wav(io.BytesIO(audio_bytes))
+            
+            # 调整语速（改变帧率）
+            if speed != 1.0:
+                # 改变播放速度（同时保持音调）
+                new_frame_rate = int(audio.frame_rate * speed)
+                audio = audio._spawn(audio.raw_data, overrides={'frame_rate': new_frame_rate})
+                # 转换回标准帧率
+                audio = audio.set_frame_rate(24000)
+            
+            # 导出
+            output = io.BytesIO()
+            audio.export(output, format="wav")
+            return output.getvalue()
+            
+        except ImportError:
+            print("警告: 未安装 pydub，跳过语速调整")
+            return audio_bytes
+        except Exception as e:
+            print(f"语速调整失败: {e}")
+            return audio_bytes
+
 
 # ==================== 预设音色（Fish Speech 参考音频）====================
 # 实际应该预置一些参考音频文件，这里用配置占位
@@ -80,28 +120,31 @@ class LLMService:
                 "reason": "未配置Kimi API，使用默认参数"
             }
         
-        prompt = f"""分析以下文本，确定最佳语音合成参数：
+        prompt = f"""分析以下文本，确定最佳语音合成参数。
+
+【Fish Speech 支持的音频标记】
+- 高级情感：(happy)开心, (angry)生气, (sad)悲伤, (excited)兴奋, (serious)严肃, (soft)温柔, (whispering)耳语, (shouting)喊叫
+- 语调标记：[pitch:+2]提高音调, [pitch:-2]降低音调
+- 特殊效果：[speed:1.2]加速, [speed:0.8]减速
 
 文本："{text}"
 
-请分析：
-1. 场景/场合（客服、演讲、聊天、通知、道歉、喜庆、紧急等）
-2. 情绪（开心、生气、悲伤、平静、兴奋、严肃等）
-3. 语气风格（正式、随意、温柔、严肃、活泼、沉稳等）
-4. 推荐语速（0.5-2.0，1.0为正常）
-5. 推荐音调（-5到+5，0为正常）
-6. 推荐音量（0.5-2.0，1.0为正常）
-7. 推荐情感标签（(happy), (angry), (sad), (excited), (serious), (soft)等）
+请分析并选择最合适的标记：
+1. 场景/场合
+2. 情绪判断
+3. 推荐情感标签（从上面列表选，或留空）
+4. 推荐语速调整（1.0正常, >1加快, <1减慢）
+5. 推荐音调调整（0正常, +升高, -降低）
+6. 完整标记组合（如："(happy) [speed:1.1]"）
 
 输出JSON：
 {{
     "scene": "场景",
     "emotion": "情绪",
-    "style": "语气风格",
+    "emotion_tag": "情感标记",
     "speed": 1.0,
     "pitch": 0,
-    "volume": 1.0,
-    "emotion_tag": "情感标签",
+    "full_tags": "完整标记组合",
     "reason": "分析理由"
 }}"""
 
@@ -429,6 +472,12 @@ async def synthesize(
                 text=session.text,
                 params=session.current_params
             )
+        
+        # 后处理：调整语速
+        speed = session.current_params.get("speed", 1.0)
+        if speed != 1.0:
+            print(f"调整语速: {speed}x")
+            audio_data = AudioProcessor.adjust_speed(audio_data, speed)
         
         # 保存音频到固定目录
         import os
