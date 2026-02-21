@@ -1,0 +1,44 @@
+{
+  "zh_female_gentle": {
+    "name": "温柔女声",
+    "desc": "适合讲故事、客服场景",
+    "voice": "zh-CN-XiaoxiaoNeural",
+    "text": "你好，很高兴为你服务。今天天气不错，希望你有美好的一天。"
+  },
+  "zh_female_lively": {
+    "name": "活泼女声",
+    "desc": "适合短视频、广告",
+    "voice": "zh-CN-XiaoyiNeural",
+    "text": "哇！这个真的太棒了！快来一起看看吧，绝对让你惊喜！"
+  },
+  "zh_male_calm": {
+    "name": "沉稳男声",
+    "desc": "适合商务、正式场合",
+    "voice": "zh-CN-YunxiNeural",
+    "text": "尊敬的各位来宾，欢迎大家参加今天的会议。接下来由我为大家介绍项目进展。"
+  },
+  "zh_male_young": {
+    "name": "年轻男声",
+    "desc": "适合游戏、动漫",
+    "voice": "zh-CN-YunjianNeural",
+    "text": "嘿，兄弟！这波操作太秀了吧！下次带我一起开黑啊！"
+  },
+  "en_female_warm": {
+    "name": "Warm Female",
+    "desc": "Friendly and approachable",
+    "voice": "en-US-AriaNeural",
+    "text": "Hello! Welcome to our service. I'm here to help you with anything you need."
+  },
+  "en_female_professional": {
+    "name": "Professional Female",
+    "desc": "Business and corporate",
+    "voice": "en-US-JennyNeural",
+    "text": "Good morning everyone. Let's begin with the quarterly financial report."
+  },
+  "en_male_friendly": {
+    "name": "Friendly Male",
+    "desc": "Casual and relaxed",
+    "voice": "en-US-GuyNeural",
+    "text": "Hey there! Thanks for checking out our app. Let me show you around."
+  }
+}

@@ -74,31 +74,49 @@ class AudioProcessor:
             return audio_bytes
 
 
-# ==================== 预设音色（Fish Speech 参考音频）====================
-# 实际应该预置一些参考音频文件，这里用配置占位
+# ==================== 预设音色（使用 Edge-TTS 生成的参考音频）====================
+# 参考音频路径: ../assets/voices/
 DEFAULT_VOICES = {
-    "xiaoxiao": {
-        "name": "晓晓",
-        "desc": "温柔女声",
-        "reference_id": "preset_xiaoxiao",
+    "zh_female_gentle": {
+        "name": "温柔女声",
+        "desc": "适合讲故事、客服场景",
+        "reference_audio": "assets/voices/zh_female_gentle.wav",
         "default_params": {"speed": 1.0, "emotion_tag": "(soft)"}
     },
-    "xiaoyi": {
-        "name": "小艺", 
-        "desc": "活泼女声",
-        "reference_id": "preset_xiaoyi",
+    "zh_female_lively": {
+        "name": "活泼女声",
+        "desc": "适合短视频、广告",
+        "reference_audio": "assets/voices/zh_female_lively.wav",
         "default_params": {"speed": 1.1, "emotion_tag": "(happy)"}
     },
-    "yunjian": {
-        "name": "云健",
-        "desc": "沉稳男声", 
-        "reference_id": "preset_yunjian",
+    "zh_male_calm": {
+        "name": "沉稳男声",
+        "desc": "适合商务、正式场合",
+        "reference_audio": "assets/voices/zh_male_calm.wav",
         "default_params": {"speed": 0.9, "emotion_tag": "(serious)"}
     },
-    "yunxi": {
-        "name": "云希",
-        "desc": "年轻男声",
-        "reference_id": "preset_yunxi", 
+    "zh_male_young": {
+        "name": "年轻男声",
+        "desc": "适合游戏、动漫",
+        "reference_audio": "assets/voices/zh_male_young.wav",
+        "default_params": {"speed": 1.0, "emotion_tag": "(excited)"}
+    },
+    "en_female_warm": {
+        "name": "Warm Female",
+        "desc": "Friendly and approachable",
+        "reference_audio": "assets/voices/en_female_warm.wav",
+        "default_params": {"speed": 1.0, "emotion_tag": "(soft)"}
+    },
+    "en_female_professional": {
+        "name": "Professional Female",
+        "desc": "Business and corporate",
+        "reference_audio": "assets/voices/en_female_professional.wav",
+        "default_params": {"speed": 0.9, "emotion_tag": "(serious)"}
+    },
+    "en_male_friendly": {
+        "name": "Friendly Male",
+        "desc": "Casual and relaxed",
+        "reference_audio": "assets/voices/en_male_friendly.wav",
         "default_params": {"speed": 1.0, "emotion_tag": "(happy)"}
     },
 }
@@ -541,11 +559,32 @@ async def list_voices():
                 "id": k,
                 "name": v["name"],
                 "description": v["desc"],
-                "default_params": v["default_params"]
+                "default_params": v["default_params"],
+                "preview_url": f"/voices/{k}/preview"
             }
             for k, v in DEFAULT_VOICES.items()
         ]
     }
+
+
+@app.get("/voices/{voice_id}/preview")
+async def get_voice_preview(voice_id: str):
+    """获取预设音色的参考音频（用于试听）"""
+    if voice_id not in DEFAULT_VOICES:
+        return JSONResponse(status_code=404, content={"error": "音色不存在"})
+    
+    voice = DEFAULT_VOICES[voice_id]
+    audio_path = voice.get("reference_audio")
+    
+    if not audio_path:
+        return JSONResponse(status_code=404, content={"error": "该音色没有参考音频"})
+    
+    # 支持相对路径和绝对路径
+    full_path = os.path.join(os.path.dirname(__file__), "..", audio_path)
+    if not os.path.exists(full_path):
+        return JSONResponse(status_code=404, content={"error": "音频文件不存在"})
+    
+    return FileResponse(full_path, media_type="audio/wav")
 
 
 # ==================== 阶段1: 智能分析 ====================
