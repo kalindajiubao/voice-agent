@@ -411,13 +411,6 @@ class LLMService:
         
         # 是否需要更多音频
         need_more_audio = audio_count < 2 and any(kw in fb for kw in ["不像", "不像我", "不像本人", "差距", "差很远"])
-                "function": "adjust_emotion",
-                "params": {"tag": emotion},
-                "reason": f"根据反馈调整情感为{emotion}"
-            })
-        
-        # 是否需要更多音频
-        need_more_audio = audio_count < 2 and any(kw in fb for kw in ["不像", "不像我", "不像本人", "差距", "差很远"])
         
         tips = []
         if need_more_audio:
