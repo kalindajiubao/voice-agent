@@ -123,7 +123,7 @@ class LLMService:
         prompt = f"""分析以下文本，确定最佳语音合成参数。
 
 【Fish Speech 支持的音频标记】
-- 高级情感：(happy)开心, (angry)生气, (sad)悲伤, (excited)兴奋, (serious)严肃, (soft)温柔, (whispering)耳语, (shouting)喊叫
+- 情感/风格：(happy)开心, (angry)生气, (sad)悲伤, (excited)兴奋, (serious)严肃, (soft)温柔, (whispering)耳语, (shouting)喊叫
 - 语调标记：[pitch:+2]提高音调, [pitch:-2]降低音调
 - 特殊效果：[speed:1.2]加速, [speed:0.8]减速
 
@@ -131,17 +131,15 @@ class LLMService:
 
 请分析并选择最合适的标记：
 1. 场景/场合
-2. 情绪判断
-3. 推荐情感标签（从上面列表选，或留空）
-4. 推荐语速调整（1.0正常, >1加快, <1减慢）
-5. 推荐音调调整（0正常, +升高, -降低）
-6. 完整标记组合（如："(happy) [speed:1.1]"）
+2. 情感/风格判断（从上面列表选择最合适的）
+3. 推荐语速调整（1.0正常, >1加快, <1减慢）
+4. 推荐音调调整（0正常, +升高, -降低）
+5. 完整标记组合（如："(happy) [speed:1.1]"）
 
 输出JSON：
 {{
     "scene": "场景",
-    "emotion": "情绪",
-    "emotion_tag": "情感标记",
+    "emotion_style": "情感风格标记",
     "speed": 1.0,
     "pitch": 0,
     "full_tags": "完整标记组合",
@@ -644,11 +642,9 @@ async def feedback(
     additional_audio: Optional[UploadFile] = File(None)
 ):
     """
-    阶段3: 接收反馈并优化
+    阶段3: 接收反馈、分析、调整参数、自动合成新语音
     
-    - 理解用户反馈
-    - 提示上传更多音频（如果需要）
-    - 调整参数
+    一站式完成：理解反馈 → 调整参数 → 自动合成 → 返回新音频
     """
     
     if session_id not in sessions:
@@ -661,7 +657,7 @@ async def feedback(
         audio_bytes = await additional_audio.read()
         session.reference_audios.append(audio_bytes)
     
-    # 理解反馈
+    # 理解反馈（大模型分析）
     result = await LLMService.understand_feedback(
         feedback,
         session.current_params,
@@ -674,28 +670,65 @@ async def feedback(
         if value is not None:
             session.current_params[key] = value
     
-    # 记录历史
-    session.history.append({
-        "version": session.version,
-        "feedback": feedback,
-        "adjustments": adjustments,
-        "analysis": result.get("analysis", ""),
-        "function_calls": result.get("function_calls", []),
-        "tips": result.get("tips", [])
-    })
+    # 自动合成新语音
+    try:
+        # 执行合成
+        if session.mode == "clone":
+            ref_audio = session.reference_audios[0] if session.reference_audios else None
+            audio_data = await FishSpeechService.synthesize(
+                text=session.text,
+                reference_audio=ref_audio,
+                params=session.current_params
+            )
+        else:
+            audio_data = await FishSpeechService.synthesize(
+                text=session.text,
+                params=session.current_params
+            )
+        
+        # 后处理：调整语速
+        speed = session.current_params.get("speed", 1.0)
+        if speed != 1.0:
+            audio_data = AudioProcessor.adjust_speed(audio_data, speed)
+        
+        # 保存音频
+        os.makedirs("outputs", exist_ok=True)
+        session.version += 1
+        audio_filename = f"outputs/{session_id}_{session.version}.wav"
+        with open(audio_filename, "wb") as f:
+            f.write(audio_data)
+        
+        # 记录历史
+        session.history.append({
+            "version": session.version,
+            "feedback": feedback,
+            "adjustments": adjustments,
+            "analysis": result.get("analysis", ""),
+            "function_calls": result.get("function_calls", [])
+        })
+        
+        # 构建提示
+        tips = result.get("tips", [])
+        function_calls = result.get("function_calls", [])
+        
+        return {
+            "session_id": session_id,
+            "phase": "synthesized",
+            "version": session.version,
+            "mode": session.mode,
+            "analysis": result.get("analysis", ""),  # 大模型分析过程
+            "function_calls": function_calls,  # 调用的功能
+            "adjustments": adjustments,  # 参数调整
+            "current_params": session.current_params,
+            "audio_url": f"/audio/{os.path.basename(audio_filename)}",
+            "audio_count": len(session.reference_audios),
+            "need_more_audio": result.get("need_more_audio", False),
+            "tips": tips,
+            "message": f"第{session.version}版合成完成（已根据反馈自动优化）"
+        }
     
-    return {
-        "session_id": session_id,
-        "phase": "optimized",
-        "analysis": result.get("analysis", ""),  # 大模型分析过程
-        "function_calls": result.get("function_calls", []),  # 调用的功能列表
-        "adjustments": adjustments,
-        "current_params": session.current_params,
-        "audio_count": len(session.reference_audios),
-        "need_more_audio": result.get("need_more_audio", False),
-        "tips": result.get("tips", []),
-        "message": "参数已调整，请重新合成"
-    }
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"error": str(e)})
 
 
 # ==================== 其他接口 ====================
