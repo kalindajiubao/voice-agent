@@ -376,14 +376,25 @@ class FishSpeechService:
         
         # 应用参数（通过文本标签）
         final_text = text
+        emotion_tag = ""
         if params:
             if params.get("emotion_tag"):
-                final_text = f"{params['emotion_tag']} {final_text}"
+                emotion_tag = params['emotion_tag']
+                # 情感标记用于控制，但要从文本中移除防止被读出来
+                # Fish Speech 会通过其他方式识别（如参考音频的情感）
         
-        # 过滤情感标签，防止被读出来
+        # 过滤所有情感标记，防止被读出来
         import re
-        final_text = re.sub(r'\(happy\)|\(angry\)|\(sad\)|\(excited\)|\(serious\)|\(soft\)', '', final_text)
-        final_text = final_text.strip()
+        # 过滤基础情感标记
+        final_text = re.sub(r'\(happy\)|\(angry\)|\(sad\)|\(excited\)|\(serious\)|\(soft\)|\(whispering\)|\(shouting\)', '', final_text)
+        # 过滤高级情感标记
+        final_text = re.sub(r'\(disdainful\)|\(unhappy\)|\(anxious\)|\(hysterical\)|\(indifferent\)|\(impatient\)|\(guilty\)|\(scornful\)|\(panicked\)|\(furious\)|\(reluctant\)|\(keen\)|\(disapproving\)|\(negative\)|\(denying\)|\(astonished\)|\(sarcastic\)|\(conciliative\)|\(comforting\)|\(sincere\)|\(sneering\)|\(hesitating\)|\(yielding\)|\(painful\)|\(awkward\)|\(amused\)', '', final_text)
+        # 过滤特殊音效
+        final_text = re.sub(r'\(laughing\)|\(chuckling\)|\(sobbing\)|\(crying loudly\)|\(sighing\)|\(panting\)|\(groaning\)|\(crowd laughing\)|\(background laughter\)|\(audience laughing\)', '', final_text)
+        # 过滤语调标记
+        final_text = re.sub(r'\(in a hurry tone\)|\(shouting\)|\(screaming\)|\(whispering\)|\(soft tone\)', '', final_text)
+        # 清理多余空格
+        final_text = re.sub(r'\s+', ' ', final_text).strip()
         
         # 创建临时客户端
         client = httpx.AsyncClient(verify=False, timeout=60.0)
