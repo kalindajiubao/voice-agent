@@ -89,6 +89,12 @@ DEFAULT_VOICES = {
         "reference_audio": "assets/voices/zh_female_lively.wav",
         "default_params": {"speed": 1.1, "emotion_tag": "(happy)"}
     },
+    "zh_female_mature": {
+        "name": "成熟女声",
+        "desc": "适合新闻播报、纪录片",
+        "reference_audio": "assets/voices/zh_female_mature.wav",
+        "default_params": {"speed": 0.9, "emotion_tag": "(serious)"}
+    },
     "zh_male_calm": {
         "name": "沉稳男声",
         "desc": "适合商务、正式场合",
@@ -100,6 +106,12 @@ DEFAULT_VOICES = {
         "desc": "适合游戏、动漫",
         "reference_audio": "assets/voices/zh_male_young.wav",
         "default_params": {"speed": 1.0, "emotion_tag": "(excited)"}
+    },
+    "zh_male_deep": {
+        "name": "磁性男声",
+        "desc": "适合有声书、深夜电台",
+        "reference_audio": "assets/voices/zh_male_deep.wav",
+        "default_params": {"speed": 0.85, "emotion_tag": "(soft)"}
     },
     "en_female_warm": {
         "name": "Warm Female",
@@ -118,6 +130,12 @@ DEFAULT_VOICES = {
         "desc": "Casual and relaxed",
         "reference_audio": "assets/voices/en_male_friendly.wav",
         "default_params": {"speed": 1.0, "emotion_tag": "(happy)"}
+    },
+    "en_male_authoritative": {
+        "name": "Authoritative Male",
+        "desc": "News and documentaries",
+        "reference_audio": "assets/voices/en_male_authoritative.wav",
+        "default_params": {"speed": 0.9, "emotion_tag": "(serious)"}
     },
 }
 
