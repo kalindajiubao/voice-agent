@@ -223,7 +223,11 @@ class FishSpeechService:
         if params:
             if params.get("emotion_tag"):
                 final_text = f"{params['emotion_tag']} {final_text}"
-            # Fish Speech 原生支持通过标签调节，这里简化处理
+        
+        # 过滤情感标签，防止被读出来
+        import re
+        final_text = re.sub(r'\(happy\)|\(angry\)|\(sad\)|\(excited\)|\(serious\)|\(soft\)', '', final_text)
+        final_text = final_text.strip()
         
         # 创建临时客户端
         client = httpx.AsyncClient(verify=False, timeout=60.0)
