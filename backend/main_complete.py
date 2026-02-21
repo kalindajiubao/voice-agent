@@ -390,23 +390,9 @@ class LLMService:
                 "params": {"tag": emotion},
                 "reason": f"根据反馈调整情感为{emotion}"
             })
-                "reason": "用户反馈音调太低，需要提高"
-            })
         
-        # 情感调整
-        emotion = ""
-        if any(w in fb for w in ["开心", "高兴", "活泼"]):
-            emotion = "(happy)"
-        elif any(w in fb for w in ["生气", "愤怒", "严肃"]):
-            emotion = "(angry)"
-        elif any(w in fb for w in ["温柔", "柔和", "软"]):
-            emotion = "(soft)"
-        elif any(w in fb for w in ["悲伤", "难过"]):
-            emotion = "(sad)"
-        
-        if emotion:
-            adjustments["emotion_tag"] = emotion
-            function_calls.append({
+        # 是否需要更多音频
+        need_more_audio = audio_count < 2 and any(kw in fb for kw in ["不像", "不像我", "不像本人", "差距", "差很远"])
                 "function": "adjust_emotion",
                 "params": {"tag": emotion},
                 "reason": f"根据反馈调整情感为{emotion}"
