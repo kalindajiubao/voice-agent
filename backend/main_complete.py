@@ -27,8 +27,13 @@ AUTODL_BASE_URL = os.getenv("AUTODL_BASE_URL", "http://localhost:7860")
 KIMI_API_KEY = os.getenv("KIMI_API_KEY", "")
 KIMI_BASE_URL = "https://api.moonshot.cn/v1"
 
-# 创建 HTTP 客户端（支持 HTTPS 跳过验证）
-http_client = httpx.AsyncClient(verify=False, timeout=60.0)
+# HTTP 客户端配置（不创建全局实例，每次请求新建）
+HTTP_TIMEOUT = 60.0
+HTTP_VERIFY = False
+
+def create_http_client():
+    """创建新的 HTTP 客户端"""
+    return httpx.AsyncClient(verify=HTTP_VERIFY, timeout=HTTP_TIMEOUT)
 
 # ==================== 音频处理 ====================
 
@@ -219,7 +224,7 @@ class LLMService:
     "reason": "详细分析理由"
 }}"""
 
-        async with http_client as client:
+        async with create_http_client() as client:
             response = await client.post(
                 f"{KIMI_BASE_URL}/chat/completions",
                 headers={"Authorization": f"Bearer {KIMI_API_KEY}"},
@@ -313,7 +318,7 @@ class LLMService:
     "tips": ["提示1", "提示2"]
 }}"""
 
-        async with http_client as client:
+        async with create_http_client() as client:
             response = await client.post(
                 f"{KIMI_BASE_URL}/chat/completions",
                 headers={"Authorization": f"Bearer {KIMI_API_KEY}"},
