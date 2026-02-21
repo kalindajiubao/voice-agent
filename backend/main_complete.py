@@ -76,25 +76,25 @@ DEFAULT_VOICES = {
         "name": "晓晓",
         "desc": "温柔女声",
         "reference_id": "preset_xiaoxiao",
-        "default_params": {"pitch": 0, "speed": 1.0, "emotion_tag": "(soft)"}
+        "default_params": {"speed": 1.0, "emotion_tag": "(soft)"}
     },
     "xiaoyi": {
         "name": "小艺", 
         "desc": "活泼女声",
         "reference_id": "preset_xiaoyi",
-        "default_params": {"pitch": 1, "speed": 1.1, "emotion_tag": "(happy)"}
+        "default_params": {"speed": 1.1, "emotion_tag": "(happy)"}
     },
     "yunjian": {
         "name": "云健",
         "desc": "沉稳男声", 
         "reference_id": "preset_yunjian",
-        "default_params": {"pitch": -1, "speed": 0.9, "emotion_tag": "(serious)"}
+        "default_params": {"speed": 0.9, "emotion_tag": "(serious)"}
     },
     "yunxi": {
         "name": "云希",
         "desc": "年轻男声",
         "reference_id": "preset_yunxi", 
-        "default_params": {"pitch": 0, "speed": 1.0, "emotion_tag": "(happy)"}
+        "default_params": {"speed": 1.0, "emotion_tag": "(happy)"}
     },
 }
 
@@ -122,28 +122,101 @@ class LLMService:
         
         prompt = f"""分析以下文本，确定最佳语音合成参数。
 
-【Fish Speech 支持的音频标记】
-- 情感/风格：(happy)开心, (angry)生气, (sad)悲伤, (excited)兴奋, (serious)严肃, (soft)温柔, (whispering)耳语, (shouting)喊叫
-- 语调标记：[pitch:+2]提高音调, [pitch:-2]降低音调
-- 特殊效果：[speed:1.2]加速, [speed:0.8]减速
+【Fish Speech 支持的情感标记】（必须从这些中选择）
+基础情感：
+- (happy) 开心
+- (angry) 生气  
+- (sad) 悲伤
+- (excited) 兴奋
+- (surprised) 惊讶
+- (satisfied) 满意
+- (delighted) 高兴
+- (scared) 害怕
+- (worried) 担心
+- (upset) 沮丧
+- (nervous) 紧张
+- (frustrated) 沮丧
+- (depressed) 抑郁
+- (empathetic) 共情
+- (embarrassed) 尴尬
+- (disgusted) 厌恶
+- (moved) 感动
+- (proud) 骄傲
+- (relaxed) 放松
+- (grateful) 感激
+- (confident) 自信
+- (interested) 感兴趣
+- (curious) 好奇
+- (confused) 困惑
+- (joyful) 快乐
+
+高级情感：
+- (disdainful) 轻蔑
+- (unhappy) 不开心
+- (anxious) 焦虑
+- (hysterical) 歇斯底里
+- (indifferent) 冷漠
+- (impatient) 不耐烦
+- (guilty) 内疚
+- (scornful) 轻蔑
+- (panicked) 恐慌
+- (furious) 愤怒
+- (reluctant) 不情愿
+- (keen) 渴望
+- (disapproving) 不赞成
+- (negative) 消极
+- (denying) 否认
+- (astonished) 震惊
+- (serious) 严肃
+- (sarcastic) 讽刺
+- (conciliative) 安抚
+- (comforting) 安慰
+- (sincere) 真诚
+- (sneering) 嘲笑
+- (hesitating) 犹豫
+- (yielding) 屈服
+- (painful) 痛苦
+- (awkward) 尴尬
+- (amused) 逗乐
+
+特殊效果：
+- (laughing) 笑
+- (chuckling) 轻笑
+- (sobbing) 啜泣
+- (crying loudly) 大哭
+- (sighing) 叹息
+- (panting) 喘气
+- (groaning) 呻吟
+- (crowd laughing) 人群笑声
+- (background laughter) 背景笑声
+- (audience laughing) 观众笑声
+
+语调标记：
+- (in a hurry tone) 匆忙语气
+- (shouting) 喊叫
+- (screaming) 尖叫
+- (whispering) 耳语
+- (soft tone) 柔和语气
+
+【语速调整】
+- 1.0 = 正常语速
+- > 1.0 = 加快（如 1.2）
+- < 1.0 = 减慢（如 0.8）
 
 文本："{text}"
 
-请分析并选择最合适的标记：
+请分析：
 1. 场景/场合
-2. 情感/风格判断（从上面列表选择最合适的）
-3. 推荐语速调整（1.0正常, >1加快, <1减慢）
-4. 推荐音调调整（0正常, +升高, -降低）
-5. 完整标记组合（如："(happy) [speed:1.1]"）
+2. 最适合的情感标记（从上面列表精确选择）
+3. 推荐语速（1.0正常, >1加快, <1减慢）
+4. 选择理由
 
 输出JSON：
 {{
     "scene": "场景",
-    "emotion_style": "情感风格标记",
+    "emotion": "情感标记",
     "speed": 1.0,
-    "pitch": 0,
-    "full_tags": "完整标记组合",
-    "reason": "分析理由"
+    "reason": "详细分析理由"
 }}"""
 
         async with http_client as client:
@@ -294,21 +367,24 @@ class LLMService:
                 "reason": "用户反馈语速太慢，需要加快"
             })
         
-        # 音调调整
-        if any(w in fb for w in ["尖", "细", "高", "刺耳"]):
-            new_pitch = max(-5, current_params.get("pitch", 0) - 1)
-            adjustments["pitch"] = new_pitch
+        # 情感调整（去掉音调调整）
+        emotion = ""
+        if any(w in fb for w in ["开心", "高兴", "活泼"]):
+            emotion = "(happy)"
+        elif any(w in fb for w in ["生气", "愤怒", "严肃"]):
+            emotion = "(angry)"
+        elif any(w in fb for w in ["温柔", "柔和", "软"]):
+            emotion = "(soft)"
+        elif any(w in fb for w in ["悲伤", "难过"]):
+            emotion = "(sad)"
+        
+        if emotion:
+            adjustments["emotion_tag"] = emotion
             function_calls.append({
-                "function": "adjust_pitch",
-                "params": {"pitch": new_pitch},
-                "reason": "用户反馈音调太尖，需要降低"
+                "function": "adjust_emotion",
+                "params": {"tag": emotion},
+                "reason": f"根据反馈调整情感为{emotion}"
             })
-        elif any(w in fb for w in ["粗", "厚", "低", "沉", "闷"]):
-            new_pitch = min(5, current_params.get("pitch", 0) + 1)
-            adjustments["pitch"] = new_pitch
-            function_calls.append({
-                "function": "adjust_pitch",
-                "params": {"pitch": new_pitch},
                 "reason": "用户反馈音调太低，需要提高"
             })
         
@@ -443,8 +519,6 @@ class SynthesisSession:
         self.analysis = {}
         self.current_params = {
             "speed": 1.0,
-            "pitch": 0,
-            "volume": 1.0,
             "emotion_tag": ""
         }
         self.version = 0
