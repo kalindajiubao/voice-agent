@@ -557,6 +557,9 @@
                                         <button className="btn btn-primary" onClick={doSynthesize} disabled={loading} style={{marginLeft: '10px'}}>
                                             🔄 重新合成
                                         </button>
+                                        <button className="btn btn-secondary" onClick={() => { setPhase(1); setText(''); }} style={{marginLeft: '10px'}}>
+                                            📝 新建合成
+                                        </button>
                                     </div>
                                 </>
                             )}
