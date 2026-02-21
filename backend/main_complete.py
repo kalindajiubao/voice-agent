@@ -225,7 +225,10 @@ class FishSpeechService:
                 final_text = f"{params['emotion_tag']} {final_text}"
             # Fish Speech 原生支持通过标签调节，这里简化处理
         
-        async with http_client as client:
+        # 创建临时客户端
+        client = httpx.AsyncClient(verify=False, timeout=60.0)
+        
+        try:
             if reference_audio:
                 # 克隆模式 - 使用上传的音频
                 files = {"reference_audio": ("audio.wav", reference_audio, "audio/wav")}
@@ -254,6 +257,8 @@ class FishSpeechService:
             if response.status_code == 200:
                 return response.content
             raise Exception(f"合成失败: {response.text}")
+        finally:
+            await client.aclose()
 
 
 # ==================== 会话管理 ====================
