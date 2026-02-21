@@ -241,15 +241,14 @@ class FishSpeechService:
                     timeout=60.0
                 )
             else:
-                # 普通模式 - 使用预设音色ID
+                # 普通模式 - 使用 /v1/tts 接口
                 data = {
                     "text": final_text,
-                    "reference_id": reference_id or "default",
                     "temperature": 0.7
                 }
                 
                 response = await client.post(
-                    f"{AUTODL_BASE_URL}/tts",
+                    f"{AUTODL_BASE_URL}/v1/tts",
                     json=data,
                     timeout=60.0
                 )
@@ -421,11 +420,9 @@ async def synthesize(
                 params=session.current_params
             )
         else:
-            # 普通模式 - 使用预设音色
-            voice = DEFAULT_VOICES.get(session.voice_id, DEFAULT_VOICES["xiaoxiao"])
+            # 普通模式 - 不传 reference_id，直接用文本合成
             audio_data = await FishSpeechService.synthesize(
                 text=session.text,
-                reference_id=voice["reference_id"],
                 params=session.current_params
             )
         
