@@ -6,6 +6,10 @@ import httpx
 import os
 import json
 import tempfile
+from dotenv import load_dotenv
+
+# 加载 .env 文件
+load_dotenv()
 
 app = FastAPI(title="Voice Agent - Complete", version="5.0.0")
 
