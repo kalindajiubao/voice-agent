@@ -426,10 +426,12 @@ async def synthesize(
                 params=session.current_params
             )
         
-        # 保存音频
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as tmp:
-            tmp.write(audio_data)
-            audio_path = tmp.name
+        # 保存音频到固定目录
+        import os
+        os.makedirs("outputs", exist_ok=True)
+        audio_filename = f"outputs/{session_id}_{session.version}.wav"
+        with open(audio_filename, "wb") as f:
+            f.write(audio_data)
         
         session.version += 1
         
@@ -445,7 +447,7 @@ async def synthesize(
             "phase": "synthesized",
             "version": session.version,
             "mode": session.mode,
-            "audio_url": f"/audio/{os.path.basename(audio_path)}",
+            "audio_url": f"/audio/{os.path.basename(audio_filename)}",
             "params": session.current_params,
             "audio_count": len(session.reference_audios),
             "tips": tips,
