@@ -687,12 +687,24 @@
                                                     </div>
                                                 </div>
                                                 
-                                                <button className="btn btn-success" onClick={applyFeedbackAndSynthesize} disabled={loading}>
-                                                    {loading ? '合成中...' : '✅ 确认并重新合成'}
-                                                </button>
-                                                <button className="btn btn-secondary" onClick={cancelFeedback} disabled={loading} style={{marginLeft: '10px'}}>
-                                                    ❌ 取消
-                                                </button>
+                                                {/* 有调整时显示确认按钮，无调整时只显示取消 */}
+                                                {feedbackAnalysis.adjustments && Object.keys(feedbackAnalysis.adjustments).length > 0 ? (
+                                                    <>
+                                                        <button className="btn btn-success" onClick={applyFeedbackAndSynthesize} disabled={loading}>
+                                                            {loading ? '合成中...' : '✅ 确认并重新合成'}
+                                                        </button>
+                                                        <button className="btn btn-secondary" onClick={cancelFeedback} disabled={loading} style={{marginLeft: '10px'}}>
+                                                            ❌ 取消
+                                                        </button>
+                                                    </>
+                                                ) : (
+                                                    <div style={{color: '#666', padding: '10px 0'}}>
+                                                        💡 未识别到需要调整的参数，请尝试其他描述
+                                                        <button className="btn btn-secondary" onClick={cancelFeedback} disabled={loading} style={{marginLeft: '10px'}}>
+                                                            返回
+                                                        </button>
+                                                    </div>
+                                                )}
                                             </>
                                         )}
                                         
