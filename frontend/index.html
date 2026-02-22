@@ -517,12 +517,8 @@
                                                 <span className="param-value">{analysis.scene}</span>
                                             </div>
                                             <div className="param-row">
-                                                <span className="param-label">情绪</span>
+                                                <span className="param-label">情感</span>
                                                 <span className="param-value">{analysis.emotion}</span>
-                                            </div>
-                                            <div className="param-row">
-                                                <span className="param-label">风格</span>
-                                                <span className="param-value">{analysis.style}</span>
                                             </div>
                                             <div className="param-row">
                                                 <span className="param-label">分析理由</span>
@@ -543,27 +539,79 @@
                                             <span>{params.speed}</span>
                                         </div>
                                         <div className="param-row">
-                                            <span className="param-label">音调</span>
-                                            <input 
-                                                type="range" min="-5" max="5" step="1"
-                                                value={params.pitch}
-                                                onChange={(e) => setParams({...params, pitch: parseInt(e.target.value)})}
-                                            />
-                                            <span>{params.pitch}</span>
-                                        </div>
-                                        <div className="param-row">
                                             <span className="param-label">情感标签</span>
                                             <select 
                                                 value={params.emotion_tag}
                                                 onChange={(e) => setParams({...params, emotion_tag: e.target.value})}
                                             >
                                                 <option value="">无</option>
-                                                <option value="(happy)">开心</option>
-                                                <option value="(angry)">生气</option>
-                                                <option value="(sad)">悲伤</option>
-                                                <option value="(excited)">兴奋</option>
-                                                <option value="(serious)">严肃</option>
-                                                <option value="(soft)">温柔</option>
+                                                <option value="(happy)">(happy) 开心</option>
+                                                <option value="(angry)">(angry) 生气</option>
+                                                <option value="(sad)">(sad) 悲伤</option>
+                                                <option value="(excited)">(excited) 兴奋</option>
+                                                <option value="(surprised)">(surprised) 惊讶</option>
+                                                <option value="(satisfied)">(satisfied) 满意</option>
+                                                <option value="(delighted)">(delighted) 高兴</option>
+                                                <option value="(scared)">(scared) 害怕</option>
+                                                <option value="(worried)">(worried) 担心</option>
+                                                <option value="(upset)">(upset) 沮丧</option>
+                                                <option value="(nervous)">(nervous) 紧张</option>
+                                                <option value="(frustrated)">(frustrated) 沮丧</option>
+                                                <option value="(depressed)">(depressed) 抑郁</option>
+                                                <option value="(empathetic)">(empathetic) 共情</option>
+                                                <option value="(embarrassed)">(embarrassed) 尴尬</option>
+                                                <option value="(disgusted)">(disgusted) 厌恶</option>
+                                                <option value="(moved)">(moved) 感动</option>
+                                                <option value="(proud)">(proud) 骄傲</option>
+                                                <option value="(relaxed)">(relaxed) 放松</option>
+                                                <option value="(grateful)">(grateful) 感激</option>
+                                                <option value="(confident)">(confident) 自信</option>
+                                                <option value="(interested)">(interested) 感兴趣</option>
+                                                <option value="(curious)">(curious) 好奇</option>
+                                                <option value="(confused)">(confused) 困惑</option>
+                                                <option value="(joyful)">(joyful) 快乐</option>
+                                                <option value="(disdainful)">(disdainful) 轻蔑</option>
+                                                <option value="(unhappy)">(unhappy) 不开心</option>
+                                                <option value="(anxious)">(anxious) 焦虑</option>
+                                                <option value="(hysterical)">(hysterical) 歇斯底里</option>
+                                                <option value="(indifferent)">(indifferent) 冷漠</option>
+                                                <option value="(impatient)">(impatient) 不耐烦</option>
+                                                <option value="(guilty)">(guilty) 内疚</option>
+                                                <option value="(scornful)">(scornful) 轻蔑</option>
+                                                <option value="(panicked)">(panicked) 恐慌</option>
+                                                <option value="(furious)">(furious) 愤怒</option>
+                                                <option value="(reluctant)">(reluctant) 不情愿</option>
+                                                <option value="(keen)">(keen) 渴望</option>
+                                                <option value="(disapproving)">(disapproving) 不赞成</option>
+                                                <option value="(negative)">(negative) 消极</option>
+                                                <option value="(denying)">(denying) 否认</option>
+                                                <option value="(astonished)">(astonished) 震惊</option>
+                                                <option value="(serious)">(serious) 严肃</option>
+                                                <option value="(sarcastic)">(sarcastic) 讽刺</option>
+                                                <option value="(conciliative)">(conciliative) 安抚</option>
+                                                <option value="(comforting)">(comforting) 安慰</option>
+                                                <option value="(sincere)">(sincere) 真诚</option>
+                                                <option value="(sneering)">(sneering) 嘲笑</option>
+                                                <option value="(hesitating)">(hesitating) 犹豫</option>
+                                                <option value="(yielding)">(yielding) 屈服</option>
+                                                <option value="(painful)">(painful) 痛苦</option>
+                                                <option value="(awkward)">(awkward) 尴尬</option>
+                                                <option value="(amused)">(amused) 逗乐</option>
+                                                <option value="(laughing)">(laughing) 笑</option>
+                                                <option value="(chuckling)">(chuckling) 轻笑</option>
+                                                <option value="(sobbing)">(sobbing) 啜泣</option>
+                                                <option value="(crying loudly)">(crying loudly) 大哭</option>
+                                                <option value="(sighing)">(sighing) 叹息</option>
+                                                <option value="(panting)">(panting) 喘气</option>
+                                                <option value="(groaning)">(groaning) 呻吟</option>
+                                                <option value="(crowd laughing)">(crowd laughing) 人群笑声</option>
+                                                <option value="(background laughter)">(background laughter) 背景笑声</option>
+                                                <option value="(audience laughing)">(audience laughing) 观众笑声</option>
+                                                <option value="(in a hurry tone)">(in a hurry tone) 匆忙语气</option>
+                                                <option value="(shouting)">(shouting) 喊叫</option>
+                                                <option value="(screaming)">(screaming) 尖叫</option>
+                                                <option value="(whispering)">(whispering) 耳语</option>
+                                                <option value="(soft tone)">(soft tone) 柔和语气</option>
                                             </select>
                                         </div>
                                         <button className="btn btn-primary" onClick={doSynthesize} disabled={loading}>
@@ -593,12 +641,6 @@
                                                         <span>{feedbackAnalysis.current_params.speed}</span>
                                                         <span style={{margin: '0 8px'}}>→</span>
                                                         <span style={{color: '#4caf50', fontWeight: 'bold'}}>{feedbackAnalysis.proposed_params.speed}</span>
-                                                    </div>
-                                                    <div className="param-row" style={{margin: '5px 0'}}>
-                                                        <span className="param-label">音调</span>
-                                                        <span>{feedbackAnalysis.current_params.pitch}</span>
-                                                        <span style={{margin: '0 8px'}}>→</span>
-                                                        <span style={{color: '#4caf50', fontWeight: 'bold'}}>{feedbackAnalysis.proposed_params.pitch}</span>
                                                     </div>
                                                     {feedbackAnalysis.proposed_params.emotion_tag && (
                                                         <div className="param-row" style={{margin: '5px 0'}}>
@@ -701,12 +743,6 @@
                                                         <span className="param-value">{feedbackAnalysis.current_params.speed}</span>
                                                         <span style={{margin: '0 10px'}}>→</span>
                                                         <span className="param-value" style={{color: '#4caf50'}}>{feedbackAnalysis.proposed_params.speed}</span>
-                                                    </div>
-                                                    <div className="param-row">
-                                                        <span className="param-label">当前音调</span>
-                                                        <span className="param-value">{feedbackAnalysis.current_params.pitch}</span>
-                                                        <span style={{margin: '0 10px'}}>→</span>
-                                                        <span className="param-value" style={{color: '#4caf50'}}>{feedbackAnalysis.proposed_params.pitch}</span>
                                                     </div>
                                                     <div className="param-row">
                                                         <span className="param-label">情感标签</span>
