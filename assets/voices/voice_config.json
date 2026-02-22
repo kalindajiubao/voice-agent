@@ -26,26 +26,5 @@
     "voice": "zh-CN-YunjianNeural",
     "text": "嘿，兄弟！这波操作太秀了吧！下次带我一起开黑啊！",
     "sample_audio": "zh_male_young.wav"
-  },
-  "en_female_warm": {
-    "name": "Warm Female",
-    "desc": "Friendly and approachable",
-    "voice": "en-US-AriaNeural",
-    "text": "Hello! Welcome to our service. I'm here to help you with anything you need.",
-    "sample_audio": "en_female_warm.wav"
-  },
-  "en_female_professional": {
-    "name": "Professional Female",
-    "desc": "Business and corporate",
-    "voice": "en-US-JennyNeural",
-    "text": "Good morning everyone. Let's begin with the quarterly financial report.",
-    "sample_audio": "en_female_professional.wav"
-  },
-  "en_male_friendly": {
-    "name": "Friendly Male",
-    "desc": "Casual and relaxed",
-    "voice": "en-US-GuyNeural",
-    "text": "Hey there! Thanks for checking out our app. Let me show you around.",
-    "sample_audio": "en_male_friendly.wav"
   }
 }

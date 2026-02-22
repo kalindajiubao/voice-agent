@@ -126,24 +126,6 @@ def load_voices():
                 "reference_audio": "assets/voices/zh_male_young.wav",
                 "default_params": {"speed": 1.0, "emotion_tag": ""}
             },
-            "en_female_warm": {
-                "name": "Warm Female",
-                "desc": "Friendly and approachable",
-                "reference_audio": "assets/voices/en_female_warm.wav",
-                "default_params": {"speed": 1.0, "emotion_tag": ""}
-            },
-            "en_female_professional": {
-                "name": "Professional Female",
-                "desc": "Business and corporate",
-                "reference_audio": "assets/voices/en_female_professional.wav",
-                "default_params": {"speed": 1.0, "emotion_tag": ""}
-            },
-            "en_male_friendly": {
-                "name": "Friendly Male",
-                "desc": "Casual and relaxed",
-                "reference_audio": "assets/voices/en_male_friendly.wav",
-                "default_params": {"speed": 1.0, "emotion_tag": ""}
-            },
         }
 
 # 加载音色配置
