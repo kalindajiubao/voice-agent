@@ -939,7 +939,7 @@ async def feedback_apply(
         session.reference_audios.append(audio_bytes)
     
     try:
-        # 执行合成
+        # 执行合成 (feedback_apply)
         if session.mode == "clone":
             ref_audio = session.reference_audios[0] if session.reference_audios else None
             audio_data = await FishSpeechService.synthesize(
@@ -948,8 +948,10 @@ async def feedback_apply(
                 params=session.current_params
             )
         else:
+            # 普通模式 - 使用预设音色
             audio_data = await FishSpeechService.synthesize(
                 text=session.text,
+                reference_id=session.voice_id,  # 传递音色ID
                 params=session.current_params
             )
         
