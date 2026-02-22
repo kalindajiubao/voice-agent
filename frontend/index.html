@@ -616,8 +616,8 @@
                                     <div className="section feedback-section">
                                         <div className="section-title">💬 反馈优化</div>
                                         
-                                        {/* 输入反馈 */}
-                                        {feedbackPhase === 'input' && (
+                                        {/* 输入反馈 - 默认显示 */}
+                                        {(feedbackPhase === 'input' || feedbackPhase === 'applied' || !feedbackPhase) && (
                                             <>
                                                 {/* 显示当前参数和分析 */}
                                                 {analysis && (
