@@ -759,6 +759,118 @@ async def synthesize(
 
 # ==================== 阶段3: 交互优化 ====================
 
+@app.post("/synthesize/feedback/analyze")
+async def feedback_analyze(
+    session_id: str = Form(...),
+    feedback: str = Form(...)
+):
+    """
+    阶段3-1: 分析反馈，返回调整建议（不合成）
+    
+    用户确认后再调用 /synthesize/feedback/apply 执行合成
+    """
+    
+    if session_id not in sessions:
+        return JSONResponse(status_code=404, content={"error": "会话不存在"})
+    
+    session = sessions[session_id]
+    
+    # 理解反馈（大模型分析）
+    result = await LLMService.understand_feedback(
+        feedback,
+        session.current_params,
+        len(session.reference_audios)
+    )
+    
+    # 计算调整后的参数（但不应用到 session）
+    adjustments = result.get("adjustments", {})
+    proposed_params = {**session.current_params}
+    for key, value in adjustments.items():
+        if value is not None:
+            proposed_params[key] = value
+    
+    return {
+        "session_id": session_id,
+        "phase": "feedback_analyzed",
+        "feedback": feedback,
+        "analysis": result.get("analysis", ""),  # 大模型理解
+        "adjustments": adjustments,  # 具体调整
+        "current_params": session.current_params,  # 当前参数
+        "proposed_params": proposed_params,  # 建议参数
+        "tips": result.get("tips", []),
+        "need_more_audio": result.get("need_more_audio", False),
+        "message": "请确认参数调整"
+    }
+
+
+@app.post("/synthesize/feedback/apply")
+async def feedback_apply(
+    session_id: str = Form(...),
+    apply_adjustments: bool = Form(True),
+    additional_audio: Optional[UploadFile] = File(None)
+):
+    """
+    阶段3-2: 应用反馈调整并合成
+    
+    用户确认后调用此接口执行实际合成
+    """
+    
+    if session_id not in sessions:
+        return JSONResponse(status_code=404, content={"error": "会话不存在"})
+    
+    session = sessions[session_id]
+    
+    # 保存额外上传的音频
+    if additional_audio:
+        audio_bytes = await additional_audio.read()
+        session.reference_audios.append(audio_bytes)
+    
+    try:
+        # 执行合成
+        if session.mode == "clone":
+            ref_audio = session.reference_audios[0] if session.reference_audios else None
+            audio_data = await FishSpeechService.synthesize(
+                text=session.text,
+                reference_audio=ref_audio,
+                params=session.current_params
+            )
+        else:
+            audio_data = await FishSpeechService.synthesize(
+                text=session.text,
+                params=session.current_params
+            )
+        
+        # 后处理：调整语速
+        speed = session.current_params.get("speed", 1.0)
+        if speed != 1.0:
+            audio_data = AudioProcessor.adjust_speed(audio_data, speed)
+        
+        # 保存音频
+        os.makedirs("outputs", exist_ok=True)
+        session.version += 1
+        audio_filename = f"outputs/{session_id}_{session.version}.wav"
+        with open(audio_filename, "wb") as f:
+            f.write(audio_data)
+        
+        # 获取最后一次反馈记录
+        last_feedback = session.history[-1]["feedback"] if session.history else ""
+        last_adjustments = session.history[-1]["adjustments"] if session.history else {}
+        
+        return {
+            "session_id": session_id,
+            "phase": "synthesized",
+            "version": session.version,
+            "mode": session.mode,
+            "current_params": session.current_params,
+            "audio_url": f"/audio/{os.path.basename(audio_filename)}",
+            "audio_count": len(session.reference_audios),
+            "message": f"第{session.version}版合成完成"
+        }
+    
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"error": str(e)})
+
+
 @app.post("/synthesize/feedback")
 async def feedback(
     session_id: str = Form(...),
@@ -766,9 +878,7 @@ async def feedback(
     additional_audio: Optional[UploadFile] = File(None)
 ):
     """
-    阶段3: 接收反馈、分析、调整参数、自动合成新语音
-    
-    一站式完成：理解反馈 → 调整参数 → 自动合成 → 返回新音频
+    阶段3: 接收反馈、分析、调整参数、自动合成新语音（旧版，保留兼容）
     """
     
     if session_id not in sessions:
@@ -793,6 +903,15 @@ async def feedback(
     for key, value in adjustments.items():
         if value is not None:
             session.current_params[key] = value
+    
+    # 记录历史
+    session.history.append({
+        "version": session.version,
+        "feedback": feedback,
+        "adjustments": adjustments,
+        "analysis": result.get("analysis", ""),
+        "function_calls": result.get("function_calls", [])
+    })
     
     # 自动合成新语音
     try:
@@ -821,15 +940,6 @@ async def feedback(
         audio_filename = f"outputs/{session_id}_{session.version}.wav"
         with open(audio_filename, "wb") as f:
             f.write(audio_data)
-        
-        # 记录历史
-        session.history.append({
-            "version": session.version,
-            "feedback": feedback,
-            "adjustments": adjustments,
-            "analysis": result.get("analysis", ""),
-            "function_calls": result.get("function_calls", [])
-        })
         
         # 构建提示
         tips = result.get("tips", [])

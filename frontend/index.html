@@ -298,7 +298,12 @@
             };
 
             // 阶段3: 反馈优化
-            const submitFeedback = async () => {
+            const [feedbackAnalysis, setFeedbackAnalysis] = useState(null);
+            const [proposedParams, setProposedParams] = useState(null);
+            const [feedbackPhase, setFeedbackPhase] = useState('input'); // 'input', 'analyzed', 'applied'
+
+            // 提交反馈分析（不合成）
+            const submitFeedbackForAnalysis = async () => {
                 if (!feedback) { alert('请输入反馈'); return; }
                 
                 setLoading(true);
@@ -306,23 +311,52 @@
                 formData.append('session_id', sessionId);
                 formData.append('feedback', feedback);
 
-                const res = await fetch(`${API_BASE}/synthesize/feedback`, {
+                const res = await fetch(`${API_BASE}/synthesize/feedback/analyze`, {
                     method: 'POST',
                     body: formData
                 });
                 const data = await res.json();
                 
-                // 应用调整
-                if (data.adjustments) {
-                    setParams({ ...params, ...data.adjustments });
-                }
-                setTips(data.tips || []);
-                setAudioCount(data.audio_count);
-                setFeedback('');
+                setFeedbackAnalysis(data);
+                setProposedParams(data.proposed_params);
+                setFeedbackPhase('analyzed');
                 setLoading(false);
+            };
+
+            // 应用反馈并合成
+            const applyFeedbackAndSynthesize = async () => {
+                setLoading(true);
                 
-                // 提示用户重新合成
-                alert('参数已调整，请重新合成');
+                // 应用参数到 session
+                if (proposedParams) {
+                    setParams(proposedParams);
+                }
+                
+                const formData = new FormData();
+                formData.append('session_id', sessionId);
+                formData.append('apply_adjustments', 'true');
+
+                const res = await fetch(`${API_BASE}/synthesize/feedback/apply`, {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await res.json();
+                
+                setAudioUrl(data.audio_url);
+                setVersion(data.version);
+                setAudioCount(data.audio_count);
+                setFeedbackPhase('applied');
+                setFeedback('');
+                setFeedbackAnalysis(null);
+                setProposedParams(null);
+                setLoading(false);
+            };
+
+            // 取消反馈调整
+            const cancelFeedback = () => {
+                setFeedbackPhase('input');
+                setFeedbackAnalysis(null);
+                setProposedParams(null);
             };
 
             // 添加更多音频
@@ -537,29 +571,75 @@
 
                                     <div className="section feedback-section">
                                         <div className="section-title">💬 反馈优化</div>
-                                        <p>试听后，描述您的感觉，我们会自动优化：</p>
-                                        <ul style={{margin: '10px 0', color: '#666'}}>
-                                            <li>"太年轻了，要成熟点"</li>
-                                            <li>"音调太尖，要低沉些"</li>
-                                            <li>"语速太快，慢一点"</li>
-                                            <li>"不像我，上传了更多音频"</li>
-                                        </ul>
-                                        <input 
-                                            type="text"
-                                            className="feedback-input"
-                                            value={feedback}
-                                            onChange={(e) => setFeedback(e.target.value)}
-                                            placeholder="输入您的反馈..."
-                                        />
-                                        <button className="btn btn-success" onClick={submitFeedback} disabled={loading}>
-                                            {loading ? '处理中...' : '✨ 提交反馈并优化'}
-                                        </button>
-                                        <button className="btn btn-primary" onClick={doSynthesize} disabled={loading} style={{marginLeft: '10px'}}>
-                                            🔄 重新合成
-                                        </button>
-                                        <button className="btn btn-secondary" onClick={() => { setPhase(1); setText(''); }} style={{marginLeft: '10px'}}>
-                                            📝 新建合成
-                                        </button>
+                                        
+                                        {/* 输入反馈 */}
+                                        {feedbackPhase === 'input' && (
+                                            <>
+                                                <p>试听后，描述您的感觉：</p>
+                                                <ul style={{margin: '10px 0', color: '#666'}}>
+                                                    <li>"太年轻了，要成熟点"</li>
+                                                    <li>"音调太尖，要低沉些"</li>
+                                                    <li>"语速太快，慢一点"</li>
+                                                </ul>
+                                                <input 
+                                                    type="text"
+                                                    className="feedback-input"
+                                                    value={feedback}
+                                                    onChange={(e) => setFeedback(e.target.value)}
+                                                    placeholder="输入您的反馈..."
+                                                />
+                                                <button className="btn btn-success" onClick={submitFeedbackForAnalysis} disabled={loading}>
+                                                    {loading ? '分析中...' : '🔍 分析反馈'}
+                                                </button>
+                                            </>
+                                        )}
+                                        
+                                        {/* 显示分析结果，等待确认 */}
+                                        {feedbackPhase === 'analyzed' && feedbackAnalysis && (
+                                            <>
+                                                <div className="analysis-box" style={{marginBottom: '20px'}}>
+                                                    <h4 style={{marginBottom: '10px'}}>🤖 大模型理解</h4>
+                                                    <p style={{marginBottom: '15px', color: '#333'}}>{feedbackAnalysis.analysis}</p>
+                                                    
+                                                    <h4 style={{marginBottom: '10px'}}>📊 参数调整</h4>
+                                                    <div className="param-row">
+                                                        <span className="param-label">当前语速</span>
+                                                        <span className="param-value">{feedbackAnalysis.current_params.speed}</span>
+                                                        <span style={{margin: '0 10px'}}>→</span>
+                                                        <span className="param-value" style={{color: '#4caf50'}}>{feedbackAnalysis.proposed_params.speed}</span>
+                                                    </div>
+                                                    <div className="param-row">
+                                                        <span className="param-label">当前音调</span>
+                                                        <span className="param-value">{feedbackAnalysis.current_params.pitch}</span>
+                                                        <span style={{margin: '0 10px'}}>→</span>
+                                                        <span className="param-value" style={{color: '#4caf50'}}>{feedbackAnalysis.proposed_params.pitch}</span>
+                                                    </div>
+                                                    <div className="param-row">
+                                                        <span className="param-label">情感标签</span>
+                                                        <span className="param-value">{feedbackAnalysis.current_params.emotion_tag || '无'}</span>
+                                                        <span style={{margin: '0 10px'}}>→</span>
+                                                        <span className="param-value" style={{color: '#4caf50'}}>{feedbackAnalysis.proposed_params.emotion_tag || '无'}</span>
+                                                    </div>
+                                                </div>
+                                                
+                                                <button className="btn btn-success" onClick={applyFeedbackAndSynthesize} disabled={loading}>
+                                                    {loading ? '合成中...' : '✅ 确认并重新合成'}
+                                                </button>
+                                                <button className="btn btn-secondary" onClick={cancelFeedback} disabled={loading} style={{marginLeft: '10px'}}>
+                                                    ❌ 取消
+                                                </button>
+                                            </>
+                                        )}
+                                        
+                                        {/* 操作按钮 */}
+                                        <div style={{marginTop: '20px'}}>
+                                            <button className="btn btn-primary" onClick={doSynthesize} disabled={loading}>
+                                                🔄 用当前参数重新合成
+                                            </button>
+                                            <button className="btn btn-secondary" onClick={() => { setPhase(1); setText(''); setFeedbackPhase('input'); }} style={{marginLeft: '10px'}}>
+                                                📝 新建合成
+                                            </button>
+                                        </div>
                                     </div>
                                 </>
                             )}
