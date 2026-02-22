@@ -584,8 +584,38 @@ class FishSpeechService:
                     data=data,
                     timeout=60.0
                 )
+            elif reference_id:
+                # 普通模式 - 使用预设音色（reference_id）
+                # 获取音色对应的参考音频路径
+                voices = load_voices()
+                voice_config = voices.get(reference_id, {})
+                ref_audio_path = voice_config.get("reference_audio")
+                
+                if ref_audio_path and os.path.exists(ref_audio_path):
+                    # 使用音色对应的参考音频文件
+                    with open(ref_audio_path, "rb") as f:
+                        ref_audio_bytes = f.read()
+                    files = {"reference_audio": ("audio.wav", ref_audio_bytes, "audio/wav")}
+                    data = {"text": final_text, "temperature": 0.7}
+                    response = await client.post(
+                        f"{AUTODL_BASE_URL}/tts",
+                        files=files,
+                        data=data,
+                        timeout=60.0
+                    )
+                else:
+                    # 如果没有找到参考音频，使用纯文本合成
+                    data = {
+                        "text": final_text,
+                        "temperature": 0.7
+                    }
+                    response = await client.post(
+                        f"{AUTODL_BASE_URL}/v1/tts",
+                        json=data,
+                        timeout=60.0
+                    )
             else:
-                # 普通模式 - 使用 /v1/tts 接口
+                # 默认模式 - 不传参考音频
                 data = {
                     "text": final_text,
                     "temperature": 0.7
@@ -783,9 +813,10 @@ async def synthesize(
                 params=session.current_params
             )
         else:
-            # 普通模式 - 不传 reference_id，直接用文本合成
+            # 普通模式 - 使用预设音色
             audio_data = await FishSpeechService.synthesize(
                 text=session.text,
+                reference_id=session.voice_id,  # 传递音色ID
                 params=session.current_params
             )
         
