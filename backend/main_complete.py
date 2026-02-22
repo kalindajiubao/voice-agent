@@ -463,6 +463,9 @@ class LLMService:
 class FishSpeechService:
     """Fish Speech 服务 - 统一后端支持克隆和普通模式"""
     
+    # 模拟模式开关（当 Fish Speech 不可用时使用）
+    MOCK_MODE = True
+    
     @staticmethod
     async def synthesize(
         text: str,
@@ -475,6 +478,7 @@ class FishSpeechService:
         - 有 reference_audio: 克隆模式
         - 有 reference_id: 预设音色模式
         - 都无: 默认音色
+        - MOCK_MODE=True: 返回测试音频
         """
         
         # 应用参数（通过文本标签）
@@ -498,6 +502,11 @@ class FishSpeechService:
         final_text = re.sub(r'\(in a hurry tone\)|\(shouting\)|\(screaming\)|\(whispering\)|\(soft tone\)', '', final_text)
         # 清理多余空格
         final_text = re.sub(r'\s+', ' ', final_text).strip()
+        
+        # 模拟模式：生成测试音频（当 Fish Speech 不可用时）
+        if FishSpeechService.MOCK_MODE:
+            print(f"[MOCK MODE] 模拟合成: {final_text[:30]}...")
+            return await FishSpeechService._generate_mock_audio(final_text, params)
         
         # 创建临时客户端
         client = httpx.AsyncClient(verify=False, timeout=60.0)
@@ -532,6 +541,58 @@ class FishSpeechService:
             raise Exception(f"合成失败: {response.text}")
         finally:
             await client.aclose()
+    
+    @staticmethod
+    async def _generate_mock_audio(text: str, params: Optional[Dict] = None) -> bytes:
+        """
+        生成模拟音频（用于测试，无需 Fish Speech 服务）
+        生成一个包含文本信息的简单 WAV 文件
+        """
+        import struct
+        import math
+        
+        # 音频参数
+        sample_rate = 24000
+        duration = min(3.0, max(1.0, len(text) * 0.1))  # 根据文本长度调整时长
+        num_samples = int(sample_rate * duration)
+        
+        # 生成简单的正弦波（模拟语音）
+        # 根据语速调整频率
+        speed = params.get("speed", 1.0) if params else 1.0
+        base_freq = 200 * speed  # 基础频率
+        
+        audio_data = []
+        for i in range(num_samples):
+            t = i / sample_rate
+            # 添加一些变化模拟语音
+            freq = base_freq + 50 * math.sin(2 * math.pi * 2 * t)
+            sample = 0.3 * math.sin(2 * math.pi * freq * t)
+            # 添加衰减避免爆音
+            sample *= (1 - t / duration) if t > duration * 0.8 else 1.0
+            audio_data.append(int(sample * 32767))
+        
+        # 构建 WAV 文件头
+        wav_header = struct.pack(
+            '<4sI4s4sIHHIIHH4sI',
+            b'RIFF',
+            36 + num_samples * 2,  # 文件大小
+            b'WAVE',
+            b'fmt ',
+            16,  # fmt chunk 大小
+            1,   # 音频格式 (PCM)
+            1,   # 声道数
+            sample_rate,
+            sample_rate * 2,  # 字节率
+            2,   # 块对齐
+            16,  # 采样位数
+            b'data',
+            num_samples * 2  # data chunk 大小
+        )
+        
+        # 转换音频数据为字节
+        audio_bytes = struct.pack('<' + 'h' * num_samples, *audio_data)
+        
+        return wav_header + audio_bytes
 
 
 # ==================== 会话管理 ====================
