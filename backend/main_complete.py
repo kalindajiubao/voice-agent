@@ -74,70 +74,79 @@ class AudioProcessor:
             return audio_bytes
 
 
-# ==================== 预设音色（使用 Edge-TTS 生成的参考音频）====================
-# 参考音频路径: ../assets/voices/
-DEFAULT_VOICES = {
-    "zh_female_gentle": {
-        "name": "温柔女声",
-        "desc": "适合讲故事、客服场景",
-        "reference_audio": "assets/voices/zh_female_gentle.wav",
-        "default_params": {"speed": 1.0, "emotion_tag": "(soft)"}
-    },
-    "zh_female_lively": {
-        "name": "活泼女声",
-        "desc": "适合短视频、广告",
-        "reference_audio": "assets/voices/zh_female_lively.wav",
-        "default_params": {"speed": 1.1, "emotion_tag": "(happy)"}
-    },
-    "zh_female_mature": {
-        "name": "成熟女声",
-        "desc": "适合新闻播报、纪录片",
-        "reference_audio": "assets/voices/zh_female_mature.wav",
-        "default_params": {"speed": 0.9, "emotion_tag": "(serious)"}
-    },
-    "zh_male_calm": {
-        "name": "沉稳男声",
-        "desc": "适合商务、正式场合",
-        "reference_audio": "assets/voices/zh_male_calm.wav",
-        "default_params": {"speed": 0.9, "emotion_tag": "(serious)"}
-    },
-    "zh_male_young": {
-        "name": "年轻男声",
-        "desc": "适合游戏、动漫",
-        "reference_audio": "assets/voices/zh_male_young.wav",
-        "default_params": {"speed": 1.0, "emotion_tag": "(excited)"}
-    },
-    "zh_male_deep": {
-        "name": "磁性男声",
-        "desc": "适合有声书、深夜电台",
-        "reference_audio": "assets/voices/zh_male_deep.wav",
-        "default_params": {"speed": 0.85, "emotion_tag": "(soft)"}
-    },
-    "en_female_warm": {
-        "name": "Warm Female",
-        "desc": "Friendly and approachable",
-        "reference_audio": "assets/voices/en_female_warm.wav",
-        "default_params": {"speed": 1.0, "emotion_tag": "(soft)"}
-    },
-    "en_female_professional": {
-        "name": "Professional Female",
-        "desc": "Business and corporate",
-        "reference_audio": "assets/voices/en_female_professional.wav",
-        "default_params": {"speed": 0.9, "emotion_tag": "(serious)"}
-    },
-    "en_male_friendly": {
-        "name": "Friendly Male",
-        "desc": "Casual and relaxed",
-        "reference_audio": "assets/voices/en_male_friendly.wav",
-        "default_params": {"speed": 1.0, "emotion_tag": "(happy)"}
-    },
-    "en_male_authoritative": {
-        "name": "Authoritative Male",
-        "desc": "News and documentaries",
-        "reference_audio": "assets/voices/en_male_authoritative.wav",
-        "default_params": {"speed": 0.9, "emotion_tag": "(serious)"}
-    },
-}
+# ==================== 预设音色加载 ====================
+# 音色配置文件路径
+VOICE_CONFIG_PATH = os.path.join(os.path.dirname(__file__), "..", "assets", "voices", "voice_config.json")
+
+def load_voices():
+    """从 voice_config.json 加载音色配置"""
+    try:
+        with open(VOICE_CONFIG_PATH, 'r', encoding='utf-8') as f:
+            config = json.load(f)
+        
+        voices = {}
+        for voice_id, voice_data in config.items():
+            voices[voice_id] = {
+                "name": voice_data.get("name", voice_id),
+                "desc": voice_data.get("desc", ""),
+                "reference_audio": f"assets/voices/{voice_id}.wav",
+                "default_params": {
+                    "speed": 1.0,
+                    "emotion_tag": voice_data.get("emotion_tag", "")
+                },
+                "voice": voice_data.get("voice", "")
+            }
+        return voices
+    except Exception as e:
+        print(f"警告: 无法加载 voice_config.json: {e}，使用默认配置")
+        # 兜底默认配置
+        return {
+            "zh_female_gentle": {
+                "name": "温柔女声",
+                "desc": "适合讲故事、客服场景",
+                "reference_audio": "assets/voices/zh_female_gentle.wav",
+                "default_params": {"speed": 1.0, "emotion_tag": ""}
+            },
+            "zh_female_lively": {
+                "name": "活泼女声",
+                "desc": "适合短视频、广告",
+                "reference_audio": "assets/voices/zh_female_lively.wav",
+                "default_params": {"speed": 1.0, "emotion_tag": ""}
+            },
+            "zh_male_calm": {
+                "name": "沉稳男声",
+                "desc": "适合商务、正式场合",
+                "reference_audio": "assets/voices/zh_male_calm.wav",
+                "default_params": {"speed": 1.0, "emotion_tag": ""}
+            },
+            "zh_male_young": {
+                "name": "年轻男声",
+                "desc": "适合游戏、动漫",
+                "reference_audio": "assets/voices/zh_male_young.wav",
+                "default_params": {"speed": 1.0, "emotion_tag": ""}
+            },
+            "en_female_warm": {
+                "name": "Warm Female",
+                "desc": "Friendly and approachable",
+                "reference_audio": "assets/voices/en_female_warm.wav",
+                "default_params": {"speed": 1.0, "emotion_tag": ""}
+            },
+            "en_female_professional": {
+                "name": "Professional Female",
+                "desc": "Business and corporate",
+                "reference_audio": "assets/voices/en_female_professional.wav",
+                "default_params": {"speed": 1.0, "emotion_tag": ""}
+            },
+            "en_male_friendly": {
+                "name": "Friendly Male",
+                "desc": "Casual and relaxed",
+                "reference_audio": "assets/voices/en_male_friendly.wav",
+                "default_params": {"speed": 1.0, "emotion_tag": ""}
+            },
+        }
+
+# 加载音色配置
+DEFAULT_VOICES = load_voices()
 
 
 # ==================== 大模型服务 ====================
