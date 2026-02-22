@@ -467,23 +467,23 @@
                                                         onClick={() => setSelectedVoice(v.id)}
                                                     >
                                                         <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start'}}>
-                                                            <div>
+                                                            <div style={{flex: 1}}>
                                                                 <h4>{v.name}</h4>
                                                                 <p>{v.description}</p>
                                                             </div>
-                                                            {v.preview_url && (
-                                                                <button 
-                                                                    className="btn btn-secondary"
-                                                                    style={{padding: '5px 10px', fontSize: '12px', marginLeft: '10px'}}
-                                                                    onClick={(e) => {
-                                                                        e.stopPropagation();
-                                                                        const audio = new Audio(`${API_BASE}${v.preview_url}`);
-                                                                        audio.play();
-                                                                    }}
-                                                                >
-                                                                    ▶️ 试听
-                                                                </button>
-                                                            )}
+                                                            <button 
+                                                                className="btn btn-secondary"
+                                                                style={{padding: '5px 10px', fontSize: '12px', marginLeft: '10px', whiteSpace: 'nowrap'}}
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    const audioUrl = v.preview_url ? `${API_BASE}${v.preview_url}` : `${API_BASE}/voices/${v.id}/preview`;
+                                                                    console.log('Playing:', audioUrl);
+                                                                    const audio = new Audio(audioUrl);
+                                                                    audio.play().catch(err => console.error('Play error:', err));
+                                                                }}
+                                                            >
+                                                                ▶️ 试听
+                                                            </button>
                                                         </div>
                                                     </div>
                                                 ))}
