@@ -591,20 +591,49 @@ class FishSpeechService:
                 voice_config = voices.get(reference_id, {})
                 ref_audio_path = voice_config.get("reference_audio")
                 
-                if ref_audio_path and os.path.exists(ref_audio_path):
-                    # 使用音色对应的参考音频文件
-                    with open(ref_audio_path, "rb") as f:
-                        ref_audio_bytes = f.read()
-                    files = {"reference_audio": ("audio.wav", ref_audio_bytes, "audio/wav")}
-                    data = {"text": final_text, "temperature": 0.7}
-                    response = await client.post(
-                        f"{AUTODL_BASE_URL}/tts",
-                        files=files,
-                        data=data,
-                        timeout=60.0
-                    )
+                # 构建绝对路径
+                if ref_audio_path:
+                    # 尝试多个可能的路径
+                    possible_paths = [
+                        ref_audio_path,  # 相对路径
+                        os.path.join(os.path.dirname(__file__), "..", ref_audio_path),  # 从backend目录
+                        os.path.join(os.path.dirname(__file__), ref_audio_path),  # 直接相对backend
+                        f"../{ref_audio_path}",  # 上级目录
+                    ]
+                    
+                    ref_audio_full_path = None
+                    for path in possible_paths:
+                        if os.path.exists(path):
+                            ref_audio_full_path = path
+                            break
+                    
+                    if ref_audio_full_path:
+                        print(f"[音色合成] 使用参考音频: {ref_audio_full_path}")
+                        # 使用音色对应的参考音频文件
+                        with open(ref_audio_full_path, "rb") as f:
+                            ref_audio_bytes = f.read()
+                        files = {"reference_audio": ("audio.wav", ref_audio_bytes, "audio/wav")}
+                        data = {"text": final_text, "temperature": 0.7}
+                        response = await client.post(
+                            f"{AUTODL_BASE_URL}/tts",
+                            files=files,
+                            data=data,
+                            timeout=60.0
+                        )
+                    else:
+                        print(f"[音色合成] 未找到参考音频: {ref_audio_path}，尝试路径: {possible_paths}")
+                        # 如果没有找到参考音频，使用纯文本合成
+                        data = {
+                            "text": final_text,
+                            "temperature": 0.7
+                        }
+                        response = await client.post(
+                            f"{AUTODL_BASE_URL}/v1/tts",
+                            json=data,
+                            timeout=60.0
+                        )
                 else:
-                    # 如果没有找到参考音频，使用纯文本合成
+                    # 如果没有参考音频配置，使用纯文本合成
                     data = {
                         "text": final_text,
                         "temperature": 0.7
