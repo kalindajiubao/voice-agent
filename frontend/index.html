@@ -466,8 +466,25 @@
                                                         className={`voice-card ${selectedVoice === v.id ? 'active' : ''}`}
                                                         onClick={() => setSelectedVoice(v.id)}
                                                     >
-                                                        <h4>{v.name}</h4>
-                                                        <p>{v.description}</p>
+                                                        <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start'}}>
+                                                            <div>
+                                                                <h4>{v.name}</h4>
+                                                                <p>{v.description}</p>
+                                                            </div>
+                                                            {v.sample_audio && (
+                                                                <button 
+                                                                    className="btn btn-secondary"
+                                                                    style={{padding: '5px 10px', fontSize: '12px', marginLeft: '10px'}}
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        const audio = new Audio(`${API_BASE}/voices/${v.id}/sample`);
+                                                                        audio.play();
+                                                                    }}
+                                                                >
+                                                                    ▶️ 试听
+                                                                </button>
+                                                            )}
+                                                        </div>
                                                     </div>
                                                 ))}
                                             </div>

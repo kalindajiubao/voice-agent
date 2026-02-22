@@ -90,6 +90,7 @@ def load_voices():
                 "name": voice_data.get("name", voice_id),
                 "desc": voice_data.get("desc", ""),
                 "reference_audio": f"assets/voices/{voice_id}.wav",
+                "sample_audio": voice_data.get("sample_audio"),  # 示例音频
                 "default_params": {
                     "speed": 1.0,
                     "emotion_tag": voice_data.get("emotion_tag", "")
@@ -1014,7 +1015,9 @@ async def get_audio(filename: str):
     patterns = [
         f"/tmp/{filename}",
         f"/tmp/*{filename}*",
-        f"outputs/{filename}"
+        f"outputs/{filename}",
+        f"../assets/voices/{filename}",
+        f"assets/voices/{filename}"
     ]
     
     for pattern in patterns:
@@ -1023,6 +1026,34 @@ async def get_audio(filename: str):
             return FileResponse(files[0], media_type="audio/wav")
     
     return JSONResponse(status_code=404, content={"error": "文件不存在"})
+
+
+@app.get("/voices/{voice_id}/sample")
+async def get_voice_sample(voice_id: str):
+    """获取音色示例音频"""
+    voices = load_voices()
+    if voice_id not in voices:
+        return JSONResponse(status_code=404, content={"error": "音色不存在"})
+    
+    voice = voices[voice_id]
+    sample_audio = voice.get("sample_audio")
+    
+    if not sample_audio:
+        return JSONResponse(status_code=404, content={"error": "该音色暂无示例音频"})
+    
+    import glob
+    patterns = [
+        f"../assets/voices/{sample_audio}",
+        f"assets/voices/{sample_audio}",
+        f"{os.path.dirname(VOICE_CONFIG_PATH)}/{sample_audio}"
+    ]
+    
+    for pattern in patterns:
+        files = glob.glob(pattern)
+        if files:
+            return FileResponse(files[0], media_type="audio/wav")
+    
+    return JSONResponse(status_code=404, content={"error": "示例音频文件不存在"})
 
 
 if __name__ == "__main__":
