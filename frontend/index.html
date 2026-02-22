@@ -551,6 +551,38 @@
                                         <div className="section-title">🎧 合成结果（第{version}版）</div>
                                         <audio controls src={`${API_BASE}${audioUrl}`} className="audio-player" />
                                         
+                                        {/* 显示参数调整结果 */}
+                                        {feedbackAnalysis && feedbackPhase === 'applied' && (
+                                            <div className="analysis-box" style={{marginBottom: '15px'}}>
+                                                <div style={{display: 'flex', alignItems: 'center', marginBottom: '10px'}}>
+                                                    <span style={{color: '#4caf50', marginRight: '8px'}}>✅</span>
+                                                    <span style={{fontWeight: 'bold'}}>已根据反馈调整参数</span>
+                                                </div>
+                                                <div style={{fontSize: '14px', color: '#666'}}>
+                                                    <div className="param-row" style={{margin: '5px 0'}}>
+                                                        <span className="param-label">语速</span>
+                                                        <span>{feedbackAnalysis.current_params.speed}</span>
+                                                        <span style={{margin: '0 8px'}}>→</span>
+                                                        <span style={{color: '#4caf50', fontWeight: 'bold'}}>{feedbackAnalysis.proposed_params.speed}</span>
+                                                    </div>
+                                                    <div className="param-row" style={{margin: '5px 0'}}>
+                                                        <span className="param-label">音调</span>
+                                                        <span>{feedbackAnalysis.current_params.pitch}</span>
+                                                        <span style={{margin: '0 8px'}}>→</span>
+                                                        <span style={{color: '#4caf50', fontWeight: 'bold'}}>{feedbackAnalysis.proposed_params.pitch}</span>
+                                                    </div>
+                                                    {feedbackAnalysis.proposed_params.emotion_tag && (
+                                                        <div className="param-row" style={{margin: '5px 0'}}>
+                                                            <span className="param-label">情感</span>
+                                                            <span>{feedbackAnalysis.current_params.emotion_tag || '无'}</span>
+                                                            <span style={{margin: '0 8px'}}>→</span>
+                                                            <span style={{color: '#4caf50', fontWeight: 'bold'}}>{feedbackAnalysis.proposed_params.emotion_tag}</span>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        )}
+                                        
                                         {tips.length > 0 && (
                                             <div className="tip-box">
                                                 {tips.map((tip, i) => <div key={i}>{tip}</div>)}
