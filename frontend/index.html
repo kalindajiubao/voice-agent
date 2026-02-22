@@ -294,6 +294,9 @@
                 setAudioCount(data.audio_count);
                 setTips(data.tips || []);
                 setPhase(3);
+                setFeedbackPhase('input'); // 重置反馈阶段
+                setFeedback(''); // 清空反馈输入
+                setFeedbackAnalysis(null); // 清空分析结果
                 setLoading(false);
             };
 
