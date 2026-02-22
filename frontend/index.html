@@ -241,7 +241,13 @@
             useEffect(() => {
                 fetch(`${API_BASE}/voices`)
                     .then(r => r.json())
-                    .then(data => setVoices(data.voices));
+                    .then(data => {
+                        setVoices(data.voices);
+                        // 默认选择第一个音色
+                        if (data.voices.length > 0 && selectedVoice === 'xiaoxiao') {
+                            setSelectedVoice(data.voices[0].id);
+                        }
+                    });
             }, []);
 
             // 阶段1: 智能分析
