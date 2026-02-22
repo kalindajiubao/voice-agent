@@ -348,7 +348,7 @@
                 setAudioUrl(data.audio_url);
                 setVersion(data.version);
                 setAudioCount(data.audio_count);
-                setFeedbackPhase('applied');
+                setFeedbackPhase('input'); // 重置为输入状态，支持多次反馈
                 setFeedback('');
                 setFeedbackAnalysis(null);
                 setProposedParams(null);
