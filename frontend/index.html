@@ -607,6 +607,39 @@
                                         {/* 输入反馈 */}
                                         {feedbackPhase === 'input' && (
                                             <>
+                                                {/* 显示当前参数和分析 */}
+                                                {analysis && (
+                                                    <div className="analysis-box" style={{marginBottom: '15px'}}>
+                                                        <h4 style={{marginBottom: '10px'}}>📊 当前参数与分析</h4>
+                                                        <div className="param-row">
+                                                            <span className="param-label">场景</span>
+                                                            <span className="param-value">{analysis.scene}</span>
+                                                        </div>
+                                                        <div className="param-row">
+                                                            <span className="param-label">情绪</span>
+                                                            <span className="param-value">{analysis.emotion}</span>
+                                                        </div>
+                                                        <div className="param-row">
+                                                            <span className="param-label">风格</span>
+                                                            <span className="param-value">{analysis.style}</span>
+                                                        </div>
+                                                        <div style={{marginTop: '10px', paddingTop: '10px', borderTop: '1px solid #e0e0e0'}}>
+                                                            <div className="param-row">
+                                                                <span className="param-label">语速</span>
+                                                                <span className="param-value">{params.speed}</span>
+                                                            </div>
+                                                            <div className="param-row">
+                                                                <span className="param-label">音调</span>
+                                                                <span className="param-value">{params.pitch}</span>
+                                                            </div>
+                                                            <div className="param-row">
+                                                                <span className="param-label">情感标签</span>
+                                                                <span className="param-value">{params.emotion_tag || '无'}</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                                
                                                 <p>试听后，描述您的感觉：</p>
                                                 <ul style={{margin: '10px 0', color: '#666'}}>
                                                     <li>"太年轻了，要成熟点"</li>
