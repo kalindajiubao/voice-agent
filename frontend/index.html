@@ -471,13 +471,13 @@
                                                                 <h4>{v.name}</h4>
                                                                 <p>{v.description}</p>
                                                             </div>
-                                                            {v.sample_audio && (
+                                                            {v.preview_url && (
                                                                 <button 
                                                                     className="btn btn-secondary"
                                                                     style={{padding: '5px 10px', fontSize: '12px', marginLeft: '10px'}}
                                                                     onClick={(e) => {
                                                                         e.stopPropagation();
-                                                                        const audio = new Audio(`${API_BASE}/voices/${v.id}/sample`);
+                                                                        const audio = new Audio(`${API_BASE}${v.preview_url}`);
                                                                         audio.play();
                                                                     }}
                                                                 >
