@@ -736,11 +736,23 @@ async def analyze_text(
     session.text = text
     session.voice_id = voice_id or "xiaoxiao"
     session.analysis = analysis
+    
+    # 提取情感标签（从 emotion 字段转换）
+    emotion_value = analysis.get("emotion", "")
+    # 如果 emotion 包含括号，提取标签名
+    if emotion_value and "(" in emotion_value:
+        # 可能是 "(happy) 开心" 或 "(happy)" 格式
+        emotion_tag = emotion_value.split(")")[0] + ")"
+    elif emotion_value and emotion_value.startswith("("):
+        emotion_tag = emotion_value
+    else:
+        emotion_tag = ""
+    
     session.current_params = {
         "speed": analysis.get("speed", 1.0),
         "pitch": analysis.get("pitch", 0),
         "volume": analysis.get("volume", 1.0),
-        "emotion_tag": analysis.get("emotion_tag", "")
+        "emotion_tag": emotion_tag
     }
     
     sessions[session_id] = session
