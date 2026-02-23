@@ -623,9 +623,8 @@ class FishSpeechService:
                 audio_base64 = base64.b64encode(reference_audio).decode('utf-8')
                 
                 # 获取情感标签，用于参考音频的 text 字段
+                # 注意：情感标签已经通过 final_text 传递，这里不需要重复
                 emotion_text = ""
-                if params and params.get("emotion_tag"):
-                    emotion_text = params["emotion_tag"]
                 
                 data = {
                     "text": final_text,
@@ -633,7 +632,7 @@ class FishSpeechService:
                     "references": [
                         {
                             "audio": audio_base64,
-                            "text": emotion_text  # 情感标签放在这里
+                            "text": ""  # 参考音频的文本描述，不需要情感标签
                         }
                     ]
                 }
@@ -675,9 +674,8 @@ class FishSpeechService:
                         audio_base64 = base64.b64encode(ref_audio_bytes).decode('utf-8')
                         
                         # 获取情感标签
+                        # 注意：情感标签已经通过 final_text 传递，这里不需要重复
                         emotion_text = ""
-                        if params and params.get("emotion_tag"):
-                            emotion_text = params["emotion_tag"]
                         
                         data = {
                             "text": final_text,
@@ -685,7 +683,7 @@ class FishSpeechService:
                             "references": [
                                 {
                                     "audio": audio_base64,
-                                    "text": emotion_text  # 情感标签放在这里
+                                    "text": ""  # 参考音频的文本描述，不需要情感标签
                                 }
                             ]
                         }
