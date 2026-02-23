@@ -278,7 +278,7 @@ class LLMService:
 输出JSON：
 {{
     "scene": "场景",
-    "emotion": "情感标记（必须从列表中选择）",
+    "emotion": "英文情感标记，如(happy)、(angry)、(sad)等",
     "speed": 1.0,
     "reason": "详细分析理由"
 }}"""
@@ -449,7 +449,7 @@ class LLMService:
     "analysis": "详细分析过程...",
     "adjustments": {{
         "speed": 1.0,
-        "emotion_tag": ""
+        "emotion_tag": "英文情感标记，如(happy)、(angry)等"
     }},
     "function_calls": [
         {{"function": "adjust_emotion", "params": {{"tag": "(happy)"}}, "reason": "..."}},
