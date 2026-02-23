@@ -604,13 +604,19 @@ class FishSpeechService:
                 # 转为 base64，使用 references 参数
                 import base64
                 audio_base64 = base64.b64encode(reference_audio).decode('utf-8')
+                
+                # 获取情感标签，用于参考音频的 text 字段
+                emotion_text = ""
+                if params and params.get("emotion_tag"):
+                    emotion_text = params["emotion_tag"]
+                
                 data = {
                     "text": final_text,
                     "temperature": 0.7,
                     "references": [
                         {
                             "audio": audio_base64,
-                            "text": ""  # 参考音频文本（可选）
+                            "text": emotion_text  # 情感标签放在这里
                         }
                     ]
                 }
@@ -650,13 +656,19 @@ class FishSpeechService:
                         # 转为 base64，使用 references 参数
                         import base64
                         audio_base64 = base64.b64encode(ref_audio_bytes).decode('utf-8')
+                        
+                        # 获取情感标签
+                        emotion_text = ""
+                        if params and params.get("emotion_tag"):
+                            emotion_text = params["emotion_tag"]
+                        
                         data = {
                             "text": final_text,
                             "temperature": 0.7,
                             "references": [
                                 {
                                     "audio": audio_base64,
-                                    "text": ""
+                                    "text": emotion_text  # 情感标签放在这里
                                 }
                             ]
                         }
