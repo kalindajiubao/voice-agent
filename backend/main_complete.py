@@ -7,6 +7,7 @@ import os
 import json
 import tempfile
 import re
+import glob
 from dotenv import load_dotenv
 
 # 加载 .env 文件
@@ -582,7 +583,7 @@ class FishSpeechService:
                 # Fish Speech 会通过其他方式识别（如参考音频的情感）
         
         # 过滤所有情感标记，防止被读出来
-        import re
+        # 注意：re 已在顶部导入
         # 过滤基础情感标记
         final_text = re.sub(r'\(happy\)|\(angry\)|\(sad\)|\(excited\)|\(serious\)|\(soft\)|\(whispering\)|\(shouting\)', '', final_text)
         # 过滤高级情感标记
@@ -914,7 +915,6 @@ async def synthesize(
             )
         
         # 保存音频到固定目录（语速调整已在 FishSpeechService 中完成）
-        import os
         os.makedirs("outputs", exist_ok=True)
         audio_filename = f"outputs/{session_id}_{session.version}.wav"
         with open(audio_filename, "wb") as f:
@@ -1189,8 +1189,6 @@ async def add_audio(session_id: str, audio: UploadFile = File(...)):
 @app.get("/audio/{filename}")
 async def get_audio(filename: str):
     """获取音频文件"""
-    import glob
-    
     patterns = [
         f"/tmp/{filename}",
         f"/tmp/*{filename}*",
@@ -1220,7 +1218,6 @@ async def get_voice_sample(voice_id: str):
     if not sample_audio:
         return JSONResponse(status_code=404, content={"error": "该音色暂无示例音频"})
     
-    import glob
     patterns = [
         f"../assets/voices/{sample_audio}",
         f"assets/voices/{sample_audio}",
