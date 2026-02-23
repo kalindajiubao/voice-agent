@@ -575,14 +575,18 @@ class FishSpeechService:
         try:
             if reference_audio:
                 # 克隆模式 - 使用上传的音频
-                # 将音频转为 base64，使用 JSON 格式发送
+                # 转为 base64，使用 references 参数
                 import base64
                 audio_base64 = base64.b64encode(reference_audio).decode('utf-8')
                 data = {
                     "text": final_text,
                     "temperature": 0.7,
-                    "reference_audio": audio_base64,
-                    "reference_audio_format": "wav"
+                    "references": [
+                        {
+                            "audio": audio_base64,
+                            "text": ""  # 参考音频文本（可选）
+                        }
+                    ]
                 }
                 
                 response = await client.post(
@@ -617,13 +621,18 @@ class FishSpeechService:
                         # 读取参考音频文件
                         with open(ref_audio_full_path, "rb") as f:
                             ref_audio_bytes = f.read()
-                        # 转为 base64 嵌入 JSON
+                        # 转为 base64，使用 references 参数
                         import base64
                         audio_base64 = base64.b64encode(ref_audio_bytes).decode('utf-8')
                         data = {
                             "text": final_text,
                             "temperature": 0.7,
-                            "reference_audio": audio_base64
+                            "references": [
+                                {
+                                    "audio": audio_base64,
+                                    "text": ""
+                                }
+                            ]
                         }
                         response = await client.post(
                             f"{AUTODL_BASE_URL}/v1/tts",
@@ -665,7 +674,7 @@ class FishSpeechService:
             # 详细错误信息
             error_detail = f"HTTP {response.status_code}: {response.text}"
             print(f"[TTS 错误] {error_detail}")
-            print(f"[TTS 请求] URL: {url}, 模式: {'克隆' if reference_audio else ('预设' if reference_id else '默认')}")
+            print(f"[TTS 请求] 模式: {'克隆' if reference_audio else ('预设' if reference_id else '默认')}")
             raise Exception(f"合成失败: {error_detail}")
         finally:
             await client.aclose()
