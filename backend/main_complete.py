@@ -50,6 +50,15 @@ class AudioProcessor:
             from pydub import AudioSegment
             import io
             
+            # 检查 ffmpeg 是否可用
+            import subprocess
+            try:
+                subprocess.run(['ffmpeg', '-version'], capture_output=True, check=True)
+            except (subprocess.CalledProcessError, FileNotFoundError):
+                print("[AudioProcessor] 警告: ffmpeg 未安装，语速调整功能不可用")
+                print("[AudioProcessor] 请安装 ffmpeg: Mac(brew install ffmpeg) / Linux(sudo apt-get install ffmpeg)")
+                return audio_bytes
+            
             # 加载音频
             audio = AudioSegment.from_wav(io.BytesIO(audio_bytes))
             original_duration = len(audio) / 1000.0  # 转换为秒
@@ -73,6 +82,7 @@ class AudioProcessor:
             
         except ImportError:
             print("[AudioProcessor] 警告: 未安装 pydub，跳过语速调整")
+            print("[AudioProcessor] 请安装: pip install pydub")
             return audio_bytes
         except Exception as e:
             print(f"[AudioProcessor] 语速调整失败: {e}")
