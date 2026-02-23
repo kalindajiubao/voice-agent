@@ -283,7 +283,7 @@ class LLMService:
     "reason": "详细分析理由"
 }}
 
-重要：emotion 字段必须只包含情感标签，如 "<|sad|>"，不要包含任何中文或emoji。"
+重要：emotion 字段必须只包含情感标签，如 "<|sad|>"，不要包含任何中文或emoji。"""
 
         async with create_http_client() as client:
             response = await client.post(
