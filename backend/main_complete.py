@@ -53,10 +53,18 @@ class AudioProcessor:
             # 检查 ffmpeg 是否可用
             import subprocess
             try:
-                subprocess.run(['ffmpeg', '-version'], capture_output=True, check=True)
-            except (subprocess.CalledProcessError, FileNotFoundError):
-                print("[AudioProcessor] 警告: ffmpeg 未安装，语速调整功能不可用")
+                result = subprocess.run(['ffmpeg', '-version'], capture_output=True, timeout=5)
+                if result.returncode != 0:
+                    print(f"[AudioProcessor] 警告: ffmpeg 返回错误码 {result.returncode}")
+                    print(f"[AudioProcessor] stderr: {result.stderr.decode()[:200]}")
+                    return audio_bytes
+                print(f"[AudioProcessor] ffmpeg 检测成功: {result.stdout.decode()[:100]}...")
+            except FileNotFoundError:
+                print("[AudioProcessor] 警告: ffmpeg 未找到，语速调整功能不可用")
                 print("[AudioProcessor] 请安装 ffmpeg: Mac(brew install ffmpeg) / Linux(sudo apt-get install ffmpeg)")
+                return audio_bytes
+            except Exception as e:
+                print(f"[AudioProcessor] ffmpeg 检测失败: {e}")
                 return audio_bytes
             
             # 加载音频
