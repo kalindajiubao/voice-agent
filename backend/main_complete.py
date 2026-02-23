@@ -713,6 +713,16 @@ class FishSpeechService:
                 
                 # 统一后处理：调整语速
                 print(f"[FishSpeechService] 收到音频: {len(audio_data)} bytes")
+                
+                # 检查音频时长
+                try:
+                    from pydub import AudioSegment
+                    import io
+                    audio_check = AudioSegment.from_wav(io.BytesIO(audio_data))
+                    print(f"[FishSpeechService] FishSpeech 原始音频时长: {len(audio_check)/1000:.2f}s")
+                except Exception as e:
+                    print(f"[FishSpeechService] 无法检测原始音频时长: {e}")
+                
                 print(f"[FishSpeechService] params: {params}")
                 
                 if params:
@@ -723,6 +733,15 @@ class FishSpeechService:
                         print(f"[FishSpeechService] 开始调整语速: {speed}x")
                         audio_data = AudioProcessor.adjust_speed(audio_data, speed)
                         print(f"[FishSpeechService] 语速调整完成")
+                        
+                        # 检查调整后音频时长
+                        try:
+                            from pydub import AudioSegment
+                            import io
+                            audio_final = AudioSegment.from_wav(io.BytesIO(audio_data))
+                            print(f"[FishSpeechService] 调整后音频时长: {len(audio_final)/1000:.2f}s")
+                        except Exception as e:
+                            print(f"[FishSpeechService] 无法检测调整后音频时长: {e}")
                     else:
                         print(f"[FishSpeechService] speed=1.0, 跳过语速调整")
                 else:
