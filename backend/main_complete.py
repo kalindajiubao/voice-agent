@@ -658,7 +658,11 @@ class FishSpeechService:
             
             if response.status_code == 200:
                 return response.content
-            raise Exception(f"合成失败: {response.text}")
+            # 详细错误信息
+            error_detail = f"HTTP {response.status_code}: {response.text}"
+            print(f"[TTS 错误] {error_detail}")
+            print(f"[TTS 请求] URL: {url}, 模式: {'克隆' if reference_audio else ('预设' if reference_id else '默认')}")
+            raise Exception(f"合成失败: {error_detail}")
         finally:
             await client.aclose()
 
@@ -896,7 +900,11 @@ async def synthesize(
         }
     
     except Exception as e:
-        return JSONResponse(status_code=500, content={"error": str(e)})
+        import traceback
+        error_trace = traceback.format_exc()
+        print(f"[合成错误] {str(e)}")
+        print(f"[错误详情] {error_trace}")
+        return JSONResponse(status_code=500, content={"error": str(e), "detail": error_trace})
 
 
 # ==================== 阶段3: 交互优化 ====================
