@@ -739,39 +739,55 @@
                                                     <h4 style={{marginBottom: '10px'}}>🤖 大模型理解</h4>
                                                     <p style={{marginBottom: '15px', color: '#333'}}>{feedbackAnalysis.analysis}</p>
                                                     
-                                                    <h4 style={{marginBottom: '10px'}}>📊 参数调整</h4>
-                                                    <div className="param-row">
-                                                        <span className="param-label">当前语速</span>
-                                                        <span className="param-value">{feedbackAnalysis.current_params.speed}</span>
-                                                        <span style={{margin: '0 10px'}}>→</span>
-                                                        <span className="param-value" style={{color: '#4caf50'}}>{feedbackAnalysis.proposed_params.speed}</span>
+                                                    <h4 style={{marginBottom: '10px'}}>📊 参数调整（可手动修改）</h4>
+                                                    
+                                                    {/* 语速调整 */}
+                                                    <div className="param-row" style={{marginBottom: '15px', alignItems: 'center'}}>
+                                                        <span className="param-label" style={{minWidth: '80px'}}>语速</span>
+                                                        <input 
+                                                            type="range" 
+                                                            min="0.5" 
+                                                            max="2.0" 
+                                                            step="0.1"
+                                                            value={proposedParams?.speed ?? feedbackAnalysis.proposed_params.speed}
+                                                            onChange={(e) => setProposedParams({...proposedParams, speed: parseFloat(e.target.value)})}
+                                                            style={{flex: 1, margin: '0 10px'}}
+                                                        />
+                                                        <span style={{minWidth: '50px', textAlign: 'right'}}>
+                                                            {proposedParams?.speed ?? feedbackAnalysis.proposed_params.speed}x
+                                                        </span>
                                                     </div>
-                                                    <div className="param-row">
-                                                        <span className="param-label">情感标签</span>
-                                                        <span className="param-value">{feedbackAnalysis.current_params.emotion_tag || '无'}</span>
-                                                        <span style={{margin: '0 10px'}}>→</span>
-                                                        <span className="param-value" style={{color: '#4caf50'}}>{feedbackAnalysis.proposed_params.emotion_tag || '无'}</span>
+                                                    
+                                                    {/* 情感标签调整 */}
+                                                    <div className="param-row" style={{marginBottom: '15px', alignItems: 'center'}}>
+                                                        <span className="param-label" style={{minWidth: '80px'}}>情感标签</span>
+                                                        <select 
+                                                            value={proposedParams?.emotion_tag ?? feedbackAnalysis.proposed_params.emotion_tag ?? ''}
+                                                            onChange={(e) => setProposedParams({...proposedParams, emotion_tag: e.target.value})}
+                                                            style={{flex: 1, padding: '8px', borderRadius: '4px', border: '1px solid #ddd'}}
+                                                        >
+                                                            <option value="">无</option>
+                                                            <option value="(happy)">😊 开心 (happy)</option>
+                                                            <option value="(angry)">😠 生气 (angry)</option>
+                                                            <option value="(sad)">😢 悲伤 (sad)</option>
+                                                            <option value="(excited)">🤩 兴奋 (excited)</option>
+                                                            <option value="(calm)">😌 平静 (calm)</option>
+                                                            <option value="(surprised)">😲 惊讶 (surprised)</option>
+                                                        </select>
+                                                    </div>
+                                                    
+                                                    <div style={{marginTop: '10px', paddingTop: '10px', borderTop: '1px solid #e0e0e0', color: '#666', fontSize: '12px'}}>
+                                                        💡 大模型建议：语速 {feedbackAnalysis.proposed_params.speed}x，情感 {feedbackAnalysis.proposed_params.emotion_tag || '无'}
                                                     </div>
                                                 </div>
                                                 
-                                                {/* 有调整时显示确认按钮，无调整时只显示取消 */}
-                                                {feedbackAnalysis.adjustments && Object.keys(feedbackAnalysis.adjustments).length > 0 ? (
-                                                    <>
-                                                        <button className="btn btn-success" onClick={applyFeedbackAndSynthesize} disabled={loading}>
-                                                            {loading ? '合成中...' : '✅ 确认并重新合成'}
-                                                        </button>
-                                                        <button className="btn btn-secondary" onClick={cancelFeedback} disabled={loading} style={{marginLeft: '10px'}}>
-                                                            ❌ 取消
-                                                        </button>
-                                                    </>
-                                                ) : (
-                                                    <div style={{color: '#666', padding: '10px 0'}}>
-                                                        💡 未识别到需要调整的参数，请尝试其他描述
-                                                        <button className="btn btn-secondary" onClick={cancelFeedback} disabled={loading} style={{marginLeft: '10px'}}>
-                                                            返回
-                                                        </button>
-                                                    </div>
-                                                )}
+                                                {/* 确认按钮 */}
+                                                <button className="btn btn-success" onClick={applyFeedbackAndSynthesize} disabled={loading}>
+                                                    {loading ? '合成中...' : '✅ 确认并重新合成'}
+                                                </button>
+                                                <button className="btn btn-secondary" onClick={cancelFeedback} disabled={loading} style={{marginLeft: '10px'}}>
+                                                    ❌ 取消
+                                                </button>
                                             </>
                                         )}
                                     </div>
