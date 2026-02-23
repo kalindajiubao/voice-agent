@@ -916,6 +916,10 @@ async def synthesize(
     if emotion_tag is not None:
         session.current_params["emotion_tag"] = emotion_tag
     
+    # 打印接收到的参数
+    print(f"[/synthesize] 接收参数: session_id={session_id}, speed={speed}, pitch={pitch}, volume={volume}, emotion_tag={emotion_tag}")
+    print(f"[/synthesize] 当前参数: {session.current_params}")
+    
     # 保存新上传的参考音频
     if reference_audio:
         audio_bytes = await reference_audio.read()
