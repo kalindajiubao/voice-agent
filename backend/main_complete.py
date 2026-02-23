@@ -728,11 +728,21 @@ class FishSpeechService:
                 audio_data = response.content
                 
                 # 统一后处理：调整语速
+                print(f"[FishSpeechService] 收到音频: {len(audio_data)} bytes")
+                print(f"[FishSpeechService] params: {params}")
+                
                 if params:
                     speed = params.get("speed", 1.0)
+                    print(f"[FishSpeechService] speed 值: {speed}, 类型: {type(speed)}")
+                    
                     if speed != 1.0:
-                        print(f"[FishSpeechService] 调整语速: {speed}x")
+                        print(f"[FishSpeechService] 开始调整语速: {speed}x")
                         audio_data = AudioProcessor.adjust_speed(audio_data, speed)
+                        print(f"[FishSpeechService] 语速调整完成")
+                    else:
+                        print(f"[FishSpeechService] speed=1.0, 跳过语速调整")
+                else:
+                    print(f"[FishSpeechService] params 为空，跳过语速调整")
                 
                 return audio_data
             
