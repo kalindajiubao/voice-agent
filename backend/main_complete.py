@@ -271,17 +271,19 @@ class LLMService:
 
 请分析：
 1. 场景/场合
-2. 最适合的情感标记（必须从上面列表精确选择，格式为 "(标签名)"）
+2. 最适合的情感标记（必须从上面列表精确选择，只返回标签名，如 <|happy|>、<|angry|>、<|sad|>、<|excited|>、<|calm|>、<|surprised|>）
 3. 推荐语速（1.0正常, >1加快, <1减慢）
 4. 选择理由
 
 输出JSON：
 {{
     "scene": "场景",
-    "emotion": "情感标记，如<|happy|>、<|angry|>、<|sad|>、<|excited|>、<|calm|>、<|surprised|>",
+    "emotion": "<|happy|>",
     "speed": 1.0,
     "reason": "详细分析理由"
-}}"""
+}}
+
+重要：emotion 字段必须只包含情感标签，如 "<|sad|>"，不要包含任何中文或emoji。"
 
         async with create_http_client() as client:
             response = await client.post(
@@ -449,14 +451,16 @@ class LLMService:
     "analysis": "详细分析过程...",
     "adjustments": {{
         "speed": 1.0,
-        "emotion_tag": "情感标记，如<|happy|>、<|angry|>、<|sad|>、<|excited|>、<|calm|>、<|surprised|>"
+        "emotion_tag": "<|happy|>"
     }},
     "function_calls": [
         {{"function": "adjust_emotion", "params": {{"tag": "<|happy|>"}}, "reason": "..."}},
         {{"function": "adjust_speed", "params": {{"speed": 0.9}}, "reason": "..."}}
     ],
     "tips": ["提示1", "提示2"]
-}}"""
+}}
+
+重要：emotion_tag 字段必须只包含情感标签，如 "<|sad|>"，不要包含任何中文或emoji。"""
 
         # 使用运行时读取的 kimi_api_key
         async with create_http_client() as client:
