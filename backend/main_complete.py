@@ -1036,6 +1036,7 @@ async def feedback_analyze(
 async def feedback_apply(
     session_id: str = Form(...),
     apply_adjustments: bool = Form(True),
+    params: Optional[str] = Form(None),  # JSON 字符串，包含调整后的参数
     additional_audio: Optional[UploadFile] = File(None)
 ):
     """
@@ -1053,6 +1054,16 @@ async def feedback_apply(
     if additional_audio:
         audio_bytes = await additional_audio.read()
         session.reference_audios.append(audio_bytes)
+    
+    # 应用用户确认后的参数
+    if apply_adjustments and params:
+        try:
+            import json
+            new_params = json.loads(params)
+            print(f"[feedback_apply] 应用调整后的参数: {new_params}")
+            session.current_params.update(new_params)
+        except Exception as e:
+            print(f"[feedback_apply] 解析参数失败: {e}")
     
     try:
         # 执行合成 (feedback_apply)

@@ -344,6 +344,10 @@
                 const formData = new FormData();
                 formData.append('session_id', sessionId);
                 formData.append('apply_adjustments', 'true');
+                // 传递调整后的参数给后端
+                if (proposedParams) {
+                    formData.append('params', JSON.stringify(proposedParams));
+                }
 
                 const res = await fetch(`${API_BASE}/synthesize/feedback/apply`, {
                     method: 'POST',
