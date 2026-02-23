@@ -1036,8 +1036,13 @@ async def feedback_apply(
         
         # 后处理：调整语速
         speed = session.current_params.get("speed", 1.0)
+        print(f"[语速调整] feedback_apply 速度: {speed}")
         if speed != 1.0:
+            print(f"[语速调整] 开始调整: {speed}x")
             audio_data = AudioProcessor.adjust_speed(audio_data, speed)
+            print(f"[语速调整] 调整完成")
+        else:
+            print(f"[语速调整] 速度为1.0，跳过调整")
         
         # 保存音频
         os.makedirs("outputs", exist_ok=True)
