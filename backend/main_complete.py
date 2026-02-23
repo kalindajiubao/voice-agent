@@ -579,7 +579,7 @@ class FishSpeechService:
                 data = {"text": final_text, "temperature": 0.7}
                 
                 response = await client.post(
-                    f"{AUTODL_BASE_URL}/v1/tts",
+                    f"{AUTODL_BASE_URL}/tts",
                     files=files,
                     data=data,
                     timeout=60.0
@@ -615,7 +615,7 @@ class FishSpeechService:
                         files = {"reference_audio": ("audio.wav", ref_audio_bytes, "audio/wav")}
                         data = {"text": final_text, "temperature": 0.7}
                         response = await client.post(
-                            f"{AUTODL_BASE_URL}/v1/tts",
+                            f"{AUTODL_BASE_URL}/tts",
                             files=files,
                             data=data,
                             timeout=60.0
@@ -628,7 +628,7 @@ class FishSpeechService:
                             "temperature": 0.7
                         }
                         response = await client.post(
-                            f"{AUTODL_BASE_URL}/v1/tts",
+                            f"{AUTODL_BASE_URL}/tts",
                             json=data,
                             timeout=60.0
                         )
@@ -639,7 +639,7 @@ class FishSpeechService:
                         "temperature": 0.7
                     }
                     response = await client.post(
-                        f"{AUTODL_BASE_URL}/v1/tts",
+                        f"{AUTODL_BASE_URL}/tts",
                         json=data,
                         timeout=60.0
                     )
@@ -651,7 +651,7 @@ class FishSpeechService:
                 }
                 
                 response = await client.post(
-                    f"{AUTODL_BASE_URL}/v1/tts",
+                    f"{AUTODL_BASE_URL}/tts",
                     json=data,
                     timeout=60.0
                 )
