@@ -592,20 +592,61 @@ class FishSpeechService:
                 )
             elif reference_id:
                 # 普通模式 - 使用预设音色（reference_id）
-                # 直接传递 reference_id 给 FishSpeech
-                data = {
-                    "text": final_text,
-                    "temperature": 0.7,
-                    "reference_id": reference_id  # 使用服务端预设音色
-                }
+                # 获取音色对应的参考音频路径
+                voices = load_voices()
+                voice_config = voices.get(reference_id, {})
+                ref_audio_path = voice_config.get("reference_audio")
                 
-                print(f"[音色合成] 使用预设音色: {reference_id}")
-                
-                response = await client.post(
-                    f"{AUTODL_BASE_URL}/v1/tts",
-                    json=data,
-                    timeout=60.0
-                )
+                if ref_audio_path:
+                    # 尝试多个可能的路径
+                    possible_paths = [
+                        ref_audio_path,  # 相对路径
+                        os.path.join(os.path.dirname(__file__), "..", ref_audio_path),  # 从backend目录
+                        os.path.join(os.path.dirname(__file__), ref_audio_path),  # 直接相对backend
+                        f"../{ref_audio_path}",  # 上级目录
+                    ]
+                    
+                    ref_audio_full_path = None
+                    for path in possible_paths:
+                        if os.path.exists(path):
+                            ref_audio_full_path = path
+                            break
+                    
+                    if ref_audio_full_path:
+                        print(f"[音色合成] 使用预设音色: {reference_id}, 音频: {ref_audio_full_path}")
+                        # 读取参考音频文件
+                        with open(ref_audio_full_path, "rb") as f:
+                            ref_audio_bytes = f.read()
+                        # 转为 base64 嵌入 JSON
+                        import base64
+                        audio_base64 = base64.b64encode(ref_audio_bytes).decode('utf-8')
+                        data = {
+                            "text": final_text,
+                            "temperature": 0.7,
+                            "reference_audio": audio_base64
+                        }
+                        response = await client.post(
+                            f"{AUTODL_BASE_URL}/v1/tts",
+                            json=data,
+                            timeout=60.0
+                        )
+                    else:
+                        print(f"[音色合成] 未找到参考音频: {ref_audio_path}，尝试路径: {possible_paths}")
+                        #  fallback 到纯文本
+                        data = {"text": final_text, "temperature": 0.7}
+                        response = await client.post(
+                            f"{AUTODL_BASE_URL}/v1/tts",
+                            json=data,
+                            timeout=60.0
+                        )
+                else:
+                    # 没有参考音频配置
+                    data = {"text": final_text, "temperature": 0.7}
+                    response = await client.post(
+                        f"{AUTODL_BASE_URL}/v1/tts",
+                        json=data,
+                        timeout=60.0
+                    )
             else:
                 # 默认模式 - 不传参考音频
                 data = {
