@@ -575,13 +575,19 @@ class FishSpeechService:
         try:
             if reference_audio:
                 # 克隆模式 - 使用上传的音频
-                files = {"reference_audio": ("audio.wav", reference_audio, "audio/wav")}
-                data = {"text": final_text, "temperature": 0.7}
+                # 将音频转为 base64，使用 JSON 格式发送
+                import base64
+                audio_base64 = base64.b64encode(reference_audio).decode('utf-8')
+                data = {
+                    "text": final_text,
+                    "temperature": 0.7,
+                    "reference_audio": audio_base64,
+                    "reference_audio_format": "wav"
+                }
                 
                 response = await client.post(
-                    f"{AUTODL_BASE_URL}/tts",
-                    files=files,
-                    data=data,
+                    f"{AUTODL_BASE_URL}/v1/tts",
+                    json=data,
                     timeout=60.0
                 )
             elif reference_id:
@@ -612,12 +618,18 @@ class FishSpeechService:
                         # 使用音色对应的参考音频文件
                         with open(ref_audio_full_path, "rb") as f:
                             ref_audio_bytes = f.read()
-                        files = {"reference_audio": ("audio.wav", ref_audio_bytes, "audio/wav")}
-                        data = {"text": final_text, "temperature": 0.7}
+                        # 转为 base64
+                        import base64
+                        audio_base64 = base64.b64encode(ref_audio_bytes).decode('utf-8')
+                        data = {
+                            "text": final_text,
+                            "temperature": 0.7,
+                            "reference_audio": audio_base64,
+                            "reference_audio_format": "wav"
+                        }
                         response = await client.post(
-                            f"{AUTODL_BASE_URL}/tts",
-                            files=files,
-                            data=data,
+                            f"{AUTODL_BASE_URL}/v1/tts",
+                            json=data,
                             timeout=60.0
                         )
                     else:
@@ -628,7 +640,7 @@ class FishSpeechService:
                             "temperature": 0.7
                         }
                         response = await client.post(
-                            f"{AUTODL_BASE_URL}/tts",
+                            f"{AUTODL_BASE_URL}/v1/tts",
                             json=data,
                             timeout=60.0
                         )
@@ -639,7 +651,7 @@ class FishSpeechService:
                         "temperature": 0.7
                     }
                     response = await client.post(
-                        f"{AUTODL_BASE_URL}/tts",
+                        f"{AUTODL_BASE_URL}/v1/tts",
                         json=data,
                         timeout=60.0
                     )
@@ -651,7 +663,7 @@ class FishSpeechService:
                 }
                 
                 response = await client.post(
-                    f"{AUTODL_BASE_URL}/tts",
+                    f"{AUTODL_BASE_URL}/v1/tts",
                     json=data,
                     timeout=60.0
                 )
