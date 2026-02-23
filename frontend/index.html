@@ -221,7 +221,7 @@
 
         function App() {
             // 状态管理
-            const [mode, setMode] = useState(null); // 'clone' 或 'default'
+            const [voiceId, setVoiceId] = useState('xiaoxiao');
             const [phase, setPhase] = useState(1); // 1:分析 2:合成 3:优化
             const [text, setText] = useState('');
             const [sessionId, setSessionId] = useState(null);
@@ -253,13 +253,17 @@
             // 阶段1: 智能分析
             const startAnalysis = async () => {
                 if (!text) { alert('请输入文本'); return; }
-                if (!mode) { alert('请选择模式'); return; }
+                if (!voiceId) { alert('请选择音色'); return; }
 
                 setLoading(true);
                 const formData = new FormData();
-                formData.append('mode', mode);
                 formData.append('text', text);
-                formData.append('voice_id', selectedVoice);
+                formData.append('voice_id', voiceId);
+                
+                // 如果是自定义音色，上传音频
+                if (voiceId === 'custom' && referenceAudios.length > 0) {
+                    formData.append('reference_audio', referenceAudios[0]);
+                }
 
                 const res = await fetch(`${API_BASE}/synthesize/analyze`, {
                     method: 'POST',
@@ -284,9 +288,9 @@
                 formData.append('volume', params.volume);
                 formData.append('emotion_tag', params.emotion_tag);
 
-                // 克隆模式上传音频
-                if (mode === 'clone' && referenceAudios.length > 0) {
-                    // 简化：只传第一段，实际应该支持多段
+                // 自定义音色上传音频
+                if (voiceId === 'custom' && referenceAudios.length > 0) {
+                    formData.append('reference_audio', referenceAudios[0]);
                 }
 
                 const res = await fetch(`${API_BASE}/synthesize`, {
@@ -418,104 +422,91 @@
                         </div>
                     </div>
 
-                    {/* 模式选择 */}
-                    {!mode && (
-                        <div className="mode-selector">
-                            <div className="mode-btn" onClick={() => setMode('clone')}>
-                                <h3>🎭 克隆音色</h3>
-                                <p>上传音频，克隆特定人的音色</p>
-                            </div>
-                            <div className="mode-btn" onClick={() => setMode('default')}>
-                                <h3>🎵 预设音色</h3>
-                                <p>选择内置音色，快速合成</p>
-                            </div>
-                        </div>
-                    )}
-
-                    {mode && (
+                    {/* 阶段1: 选择音色和输入 */}
+                    {phase === 1 && (
                         <>
-                            {/* 模式显示 */}
+                            {/* 音色选择 */}
                             <div className="section">
-                                <div className="section-title">
-                                    当前模式: {mode === 'clone' ? '🎭 克隆音色' : '🎵 预设音色'}
-                                    <button className="btn btn-secondary" onClick={() => setMode(null)} style={{float: 'right', marginTop: 0}}>切换</button>
-                                </div>
-                            </div>
-
-                            {/* 阶段1: 输入 */}
-                            {phase === 1 && (
-                                <>
-                                    {/* 克隆模式 - 上传音频 */}
-                                    {mode === 'clone' && (
-                                        <div className="section">
-                                            <div className="section-title">1. 上传参考音频</div>
-                                            <input 
-                                                type="file" 
-                                                accept="audio/*" 
-                                                className="file-input"
-                                                onChange={(e) => {
-                                                    if (e.target.files[0]) {
-                                                        setReferenceAudios([e.target.files[0]]);
-                                                    }
-                                                }}
-                                            />
-                                            <div className="tip-box">
-                                                💡 建议上传 10-30 秒清晰音频，可上传多段融合
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {/* 普通模式 - 选择音色 */}
-                                    {mode === 'default' && (
-                                        <div className="section">
-                                            <div className="section-title">1. 选择音色</div>
-                                            <div className="voice-grid">
-                                                {voices.map(v => (
-                                                    <div 
-                                                        key={v.id}
-                                                        className={`voice-card ${selectedVoice === v.id ? 'active' : ''}`}
-                                                        onClick={() => setSelectedVoice(v.id)}
-                                                    >
-                                                        <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start'}}>
-                                                            <div style={{flex: 1}}>
-                                                                <h4>{v.name}</h4>
-                                                                <p>{v.description}</p>
-                                                            </div>
-                                                            <button 
-                                                                className="btn btn-secondary"
-                                                                style={{padding: '5px 10px', fontSize: '12px', marginLeft: '10px', whiteSpace: 'nowrap'}}
-                                                                onClick={(e) => {
-                                                                    e.stopPropagation();
-                                                                    const audioUrl = v.preview_url ? `${API_BASE}${v.preview_url}` : `${API_BASE}/voices/${v.id}/preview`;
-                                                                    console.log('Playing:', audioUrl);
-                                                                    const audio = new Audio(audioUrl);
-                                                                    audio.play().catch(err => console.error('Play error:', err));
-                                                                }}
-                                                            >
-                                                                ▶️ 试听
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {/* 文本输入 */}
-                                    <div className="section">
-                                        <div className="section-title">2. 输入文本</div>
-                                        <textarea 
-                                            value={text}
-                                            onChange={(e) => setText(e.target.value)}
-                                            placeholder="请输入要合成的文字..."
-                                        />
-                                        <button className="btn btn-primary" onClick={startAnalysis} disabled={loading}>
-                                            {loading ? '分析中...' : '🔍 智能分析'}
-                                        </button>
+                                <div className="section-title">1. 选择音色</div>
+                                <div className="voice-grid">
+                                    {/* 上传音频选项 */}
+                                    <div 
+                                        className={`voice-card ${voiceId === 'custom' ? 'selected' : ''}`}
+                                        onClick={() => {
+                                            setVoiceId('custom');
+                                            // 触发文件选择
+                                            document.getElementById('custom-audio-input').click();
+                                        }}
+                                        style={{border: '2px dashed #667eea', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column'}}
+                                    >
+                                        <div style={{fontSize: '32px', marginBottom: '8px'}}>📤</div>
+                                        <div>上传音频</div>
+                                        <div style={{fontSize: '12px', color: '#666', marginTop: '4px'}}>克隆音色</div>
                                     </div>
-                                </>
+                                    
+                                    {/* 隐藏的文件输入 */}
+                                    <input 
+                                        id="custom-audio-input"
+                                        type="file" 
+                                        accept="audio/*" 
+                                        style={{display: 'none'}}
+                                        onChange={(e) => {
+                                            if (e.target.files[0]) {
+                                                setReferenceAudios([e.target.files[0]]);
+                                                setVoiceId('custom');
+                                            }
+                                        }}
+                                    />
+                                    
+                                    {/* 预设音色 */}
+                                    {presetVoices.map(voice => (
+                                        <div 
+                                            key={voice.id}
+                                            className={`voice-card ${voiceId === voice.id ? 'selected' : ''}`}
+                                            onClick={() => setVoiceId(voice.id)}
+                                        >
+                                            <div style={{fontSize: '32px', marginBottom: '8px'}}>{voice.icon}</div>
+                                            <div>{voice.name}</div>
+                                            <button 
+                                                className="btn btn-secondary" 
+                                                style={{marginTop: '8px', fontSize: '12px', padding: '4px 8px'}}
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    const audioUrl = `${API_BASE}/voice_sample/${voice.id}`;
+                                                    console.log('Playing:', audioUrl);
+                                                    const audio = new Audio(audioUrl);
+                                                    audio.play().catch(err => console.error('Play error:', err));
+                                                }}
+                                            >
+                                                ▶️ 试听
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>                                
+                            </div>
+                            
+                            {/* 显示已上传的音频 */}
+                            {voiceId === 'custom' && referenceAudios.length > 0 && (
+                                <div className="section">
+                                    <div className="section-title">已上传音频</div>
+                                    <div className="tip-box">
+                                        ✅ {referenceAudios[0].name} ({(referenceAudios[0].size / 1024).toFixed(1)} KB)
+                                    </div>                                </div>
                             )}
 
+                            {/* 文本输入 */}
+                            <div className="section">
+                                <div className="section-title">2. 输入文本</div>
+                                <textarea 
+                                    value={text}
+                                    onChange={(e) => setText(e.target.value)}
+                                    placeholder="请输入要合成的文字..."
+                                />
+                                <button className="btn btn-primary" onClick={startAnalysis} disabled={loading}>
+                                    {loading ? '分析中...' : '🔍 智能分析'}
+                                </button>
+                            </div>
+                        </>
                             {/* 阶段2: 分析结果 & 确认合成 */}
                             {phase === 2 && analysis && (
                                 <>
