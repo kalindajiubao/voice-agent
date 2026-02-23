@@ -579,19 +579,23 @@ class FishSpeechService:
         if params:
             if params.get("emotion_tag"):
                 emotion_tag = params['emotion_tag']
-                # 情感标记用于控制，但要从文本中移除防止被读出来
-                # Fish Speech 会通过其他方式识别（如参考音频的情感）
+                # 将 (emotion) 格式转换为 <|emotion|> 格式
+                emotion_map = {
+                    "(happy)": "<|happy|>",
+                    "(angry)": "<|angry|>",
+                    "(sad)": "<|sad|>",
+                    "(excited)": "<|excited|>",
+                    "(surprised)": "<|surprised|>",
+                    "(calm)": "<|calm|>"
+                }
+                if emotion_tag in emotion_map:
+                    final_text = emotion_map[emotion_tag] + " " + final_text
         
-        # 过滤所有情感标记，防止被读出来
-        # 注意：re 已在顶部导入
-        # 过滤基础情感标记
+        # 过滤旧格式的情感标记 (emotion)，但保留 <|emotion|> 格式
         final_text = re.sub(r'\(happy\)|\(angry\)|\(sad\)|\(excited\)|\(serious\)|\(soft\)|\(whispering\)|\(shouting\)', '', final_text)
-        # 过滤高级情感标记
         final_text = re.sub(r'\(disdainful\)|\(unhappy\)|\(anxious\)|\(hysterical\)|\(indifferent\)|\(impatient\)|\(guilty\)|\(scornful\)|\(panicked\)|\(furious\)|\(reluctant\)|\(keen\)|\(disapproving\)|\(negative\)|\(denying\)|\(astonished\)|\(sarcastic\)|\(conciliative\)|\(comforting\)|\(sincere\)|\(sneering\)|\(hesitating\)|\(yielding\)|\(painful\)|\(awkward\)|\(amused\)', '', final_text)
-        # 过滤特殊音效
         final_text = re.sub(r'\(laughing\)|\(chuckling\)|\(sobbing\)|\(crying loudly\)|\(sighing\)|\(panting\)|\(groaning\)|\(crowd laughing\)|\(background laughter\)|\(audience laughing\)', '', final_text)
-        # 过滤语调标记
-        final_text = re.sub(r'\(in a hurry tone\)|\(shouting\)|\(screaming\)|\(whispering\)|\(soft tone\)', '', final_text)
+        final_text = re.sub(r'\(in a hurry tone\)|\(screaming\)|\(soft tone\)', '', final_text)
         # 清理多余空格
         final_text = re.sub(r'\s+', ' ', final_text).strip()
         
