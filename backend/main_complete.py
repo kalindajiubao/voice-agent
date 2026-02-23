@@ -579,32 +579,10 @@ class FishSpeechService:
         if params:
             if params.get("emotion_tag"):
                 emotion_tag = params['emotion_tag']
-                # 将 (emotion) 格式转换为 <|emotion|> 格式
-                # 支持中英文映射
-                emotion_map = {
-                    # 英文
-                    "(happy)": "<|happy|>",
-                    "(angry)": "<|angry|>",
-                    "(sad)": "<|sad|>",
-                    "(excited)": "<|excited|>",
-                    "(surprised)": "<|surprised|>",
-                    "(calm)": "<|calm|>",
-                    # 中文映射
-                    "(开心)": "<|happy|>",
-                    "(高兴)": "<|happy|>",
-                    "(生气)": "<|angry|>",
-                    "(愤怒)": "<|angry|>",
-                    "(悲伤)": "<|sad|>",
-                    "(难过)": "<|sad|>",
-                    "(兴奋)": "<|excited|>",
-                    "(惊讶)": "<|surprised|>",
-                    "(平静)": "<|calm|>",
-                    "(冷静)": "<|calm|>"
-                }
-                if emotion_tag in emotion_map:
-                    final_text = emotion_map[emotion_tag] + " " + final_text
+                # 直接使用 <|emotion|> 格式，不需要转换
+                final_text = emotion_tag + " " + final_text
         
-        # 过滤旧格式的情感标记 (emotion)，但保留 <|emotion|> 格式
+        # 过滤旧格式的情感标记 (emotion) 和 <|emotion|> 格式（避免重复）
         final_text = re.sub(r'\(happy\)|\(angry\)|\(sad\)|\(excited\)|\(serious\)|\(soft\)|\(whispering\)|\(shouting\)', '', final_text)
         final_text = re.sub(r'\(disdainful\)|\(unhappy\)|\(anxious\)|\(hysterical\)|\(indifferent\)|\(impatient\)|\(guilty\)|\(scornful\)|\(panicked\)|\(furious\)|\(reluctant\)|\(keen\)|\(disapproving\)|\(negative\)|\(denying\)|\(astonished\)|\(sarcastic\)|\(conciliative\)|\(comforting\)|\(sincere\)|\(sneering\)|\(hesitating\)|\(yielding\)|\(painful\)|\(awkward\)|\(amused\)', '', final_text)
         final_text = re.sub(r'\(laughing\)|\(chuckling\)|\(sobbing\)|\(crying loudly\)|\(sighing\)|\(panting\)|\(groaning\)|\(crowd laughing\)|\(background laughter\)|\(audience laughing\)', '', final_text)
@@ -858,14 +836,23 @@ async def analyze_text(
     
     # 提取情感标签（从 emotion 字段转换）
     emotion_value = analysis.get("emotion", "")
-    # 如果 emotion 包含括号，提取标签名
+    # 如果 emotion 包含括号，提取标签名并转换为 <|emotion|> 格式
+    emotion_map = {
+        "(happy)": "<|happy|>",
+        "(angry)": "<|angry|>",
+        "(sad)": "<|sad|>",
+        "(excited)": "<|excited|>",
+        "(surprised)": "<|surprised|>",
+        "(calm)": "<|calm|>"
+    }
+    emotion_tag = ""
     if emotion_value and "(" in emotion_value:
         # 可能是 "(happy) 开心" 或 "(happy)" 格式
-        emotion_tag = emotion_value.split(")")[0] + ")"
-    elif emotion_value and emotion_value.startswith("("):
+        extracted = emotion_value.split(")")[0] + ")"
+        emotion_tag = emotion_map.get(extracted, "")
+    elif emotion_value and emotion_value.startswith("<"):
+        # 已经是 <|emotion|> 格式
         emotion_tag = emotion_value
-    else:
-        emotion_tag = ""
     
     session.current_params = {
         "speed": analysis.get("speed", 1.0),
