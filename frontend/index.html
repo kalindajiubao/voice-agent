@@ -237,9 +237,10 @@
 
         function App() {
             // 状态
-            const [phase, setPhase] = React.useState(1); // 1:选择 2:分析 3:结果
+            const [phase, setPhase] = React.useState(1);
             const [text, setText] = React.useState('');
-            const [voiceId, setVoiceId] = React.useState('xiaoxiao');
+            const [voiceId, setVoiceId] = React.useState('');
+            const [presetVoices, setPresetVoices] = React.useState([]);
             const [customAudio, setCustomAudio] = React.useState(null);
             const [sessionId, setSessionId] = React.useState(null);
             const [analysis, setAnalysis] = React.useState(null);
@@ -250,14 +251,40 @@
             
             // 反馈相关
             const [feedback, setFeedback] = React.useState('');
-            const [feedbackPhase, setFeedbackPhase] = React.useState('input'); // input, analyzed
+            const [feedbackPhase, setFeedbackPhase] = React.useState('input');
             const [feedbackResult, setFeedbackResult] = React.useState(null);
             const [adjustedParams, setAdjustedParams] = React.useState(null);
 
             // 文件输入引用
             const fileInputRef = React.useRef(null);
 
-            // 开始分析
+            // 获取预设音色列表
+            React.useEffect(() => {
+                fetch(`${API_BASE}/voices`)
+                    .then(r => r.json())
+                    .then(data => {
+                        if (data.voices && data.voices.length > 0) {
+                            setPresetVoices(data.voices);
+                            // 默认选择第一个
+                            if (!voiceId) {
+                                setVoiceId(data.voices[0].id);
+                            }
+                        } else {
+                            // 使用默认音色
+                            setPresetVoices(PRESET_VOICES);
+                            if (!voiceId) {
+                                setVoiceId(PRESET_VOICES[0].id);
+                            }
+                        }
+                    })
+                    .catch(err => {
+                        console.error('获取音色列表失败:', err);
+                        setPresetVoices(PRESET_VOICES);
+                        if (!voiceId) {
+                            setVoiceId(PRESET_VOICES[0].id);
+                        }
+                    });
+            }, []);
             const startAnalysis = async () => {
                 if (!text.trim()) {
                     alert('请输入要合成的文本');
@@ -456,7 +483,7 @@
                             />
                             
                             {/* 预设音色 */}
-                            {PRESET_VOICES.map(voice => (
+                            {presetVoices.map(voice => (
                                 <div 
                                     key={voice.id}
                                     className={`voice-card ${voiceId === voice.id ? 'selected' : ''}`}
@@ -465,8 +492,13 @@
                                         setCustomAudio(null);
                                     }}
                                 >
-                                    <div style={{fontSize: '32px', marginBottom: '8px'}}>{voice.icon}</div>
+                                    <div style={{fontSize: '32px', marginBottom: '8px'}}>🎵</div>
                                     <div>{voice.name}</div>
+                                    {voice.description && (
+                                        <div style={{fontSize: '12px', color: '#666', marginTop: '4px'}}>
+                                            {voice.description}
+                                        </div>
+                                    )}
                                 </div>
                             ))}
                         </div>
