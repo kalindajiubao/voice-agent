@@ -23,7 +23,7 @@ app.add_middleware(
 )
 
 # 配置
-AUTODL_BASE_URL = os.getenv("AUTODL_BASE_URL", "http://localhost:7860")
+AUTODL_BASE_URL = os.getenv("AUTODL_BASE_URL", "https://u894940-9373-577c3325.bjb1.seetacloud.com:8443")
 KIMI_API_KEY = os.getenv("KIMI_API_KEY", "")
 KIMI_BASE_URL = "https://api.moonshot.cn/v1"
 
@@ -579,7 +579,7 @@ class FishSpeechService:
                 data = {"text": final_text, "temperature": 0.7}
                 
                 response = await client.post(
-                    f"{AUTODL_BASE_URL}/tts",
+                    f"{AUTODL_BASE_URL}/v1/tts",
                     files=files,
                     data=data,
                     timeout=60.0
@@ -615,7 +615,7 @@ class FishSpeechService:
                         files = {"reference_audio": ("audio.wav", ref_audio_bytes, "audio/wav")}
                         data = {"text": final_text, "temperature": 0.7}
                         response = await client.post(
-                            f"{AUTODL_BASE_URL}/tts",
+                            f"{AUTODL_BASE_URL}/v1/tts",
                             files=files,
                             data=data,
                             timeout=60.0
