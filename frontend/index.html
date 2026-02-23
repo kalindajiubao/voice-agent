@@ -3,850 +3,637 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Voice Agent - 智能语音合成</title>
+    <title>Voice Agent - 语音合成</title>
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
+        body { 
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             padding: 20px;
         }
         .container {
-            max-width: 900px;
+            max-width: 800px;
             margin: 0 auto;
             background: white;
-            border-radius: 20px;
-            padding: 40px;
+            border-radius: 16px;
+            padding: 30px;
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
         }
-        h1 { text-align: center; color: #333; margin-bottom: 10px; }
-        .subtitle { text-align: center; color: #666; margin-bottom: 30px; }
-        
-        /* 模式选择 */
-        .mode-selector {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 30px;
-        }
-        .mode-btn {
-            flex: 1;
-            padding: 20px;
-            border: 2px solid #e0e0e0;
-            border-radius: 12px;
-            cursor: pointer;
+        h1 {
             text-align: center;
-            transition: all 0.3s;
-            background: white;
-        }
-        .mode-btn:hover { border-color: #667eea; }
-        .mode-btn.active {
-            border-color: #667eea;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-        }
-        .mode-btn h3 { margin-bottom: 8px; }
-        .mode-btn p { font-size: 14px; opacity: 0.8; }
-        
-        /* 步骤指示器 */
-        .steps {
-            display: flex;
-            justify-content: center;
+            color: #333;
             margin-bottom: 30px;
+            font-size: 28px;
         }
-        .step {
-            display: flex;
-            align-items: center;
-            color: #999;
-        }
-        .step-number {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            background: #e0e0e0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-right: 8px;
-            font-weight: bold;
-        }
-        .step.active .step-number {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-        }
-        .step.active { color: #333; font-weight: bold; }
-        .step-line {
-            width: 60px;
-            height: 2px;
-            background: #e0e0e0;
-            margin: 0 15px;
-        }
-        
-        /* 内容区域 */
         .section {
             margin-bottom: 25px;
-            padding: 25px;
+            padding: 20px;
             background: #f8f9fa;
             border-radius: 12px;
         }
         .section-title {
-            font-size: 18px;
-            font-weight: bold;
+            font-size: 16px;
+            font-weight: 600;
             color: #333;
             margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
-        
+        .voice-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 12px;
+        }
+        .voice-card {
+            padding: 16px 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: white;
+        }
+        .voice-card:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+        }
+        .voice-card.selected {
+            border-color: #667eea;
+            background: #f0f4ff;
+        }
+        .voice-card.upload {
+            border-style: dashed;
+            border-color: #667eea;
+        }
         textarea {
             width: 100%;
             min-height: 100px;
-            padding: 15px;
+            padding: 12px;
             border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            font-size: 16px;
+            border-radius: 8px;
+            font-size: 14px;
             resize: vertical;
         }
-        textarea:focus { outline: none; border-color: #667eea; }
-        
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
         .btn {
-            padding: 14px 32px;
+            padding: 12px 24px;
             border: none;
-            border-radius: 10px;
-            font-size: 16px;
+            border-radius: 8px;
+            font-size: 14px;
             cursor: pointer;
-            transition: all 0.3s;
-            margin-right: 10px;
-            margin-top: 10px;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
         }
         .btn-primary {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
         }
-        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 5px 20px rgba(102,126,234,0.4); }
-        .btn-secondary { background: #e0e0e0; color: #333; }
-        .btn-success { background: #4caf50; color: white; }
-        
-        .file-input { margin: 15px 0; }
-        
-        /* 分析结果 */
-        .analysis-box {
-            background: #e3f2fd;
-            border-left: 4px solid #2196f3;
-            padding: 20px;
-            margin: 15px 0;
-            border-radius: 0 12px 12px 0;
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+        .btn-secondary {
+            background: #e0e0e0;
+            color: #333;
+        }
+        .btn-success {
+            background: #4caf50;
+            color: white;
         }
         .param-row {
             display: flex;
-            justify-content: space-between;
-            margin: 10px 0;
-            padding: 8px 0;
-            border-bottom: 1px solid #e0e0e0;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
         }
-        .param-label { color: #666; }
-        .param-value { font-weight: bold; color: #333; }
-        
-        /* 音频播放器 */
-        .audio-section {
-            background: #f5f5f5;
-            padding: 25px;
-            border-radius: 12px;
-            text-align: center;
+        .param-label {
+            min-width: 80px;
+            font-weight: 500;
+            color: #666;
+        }
+        input[type="range"] {
+            flex: 1;
+        }
+        select {
+            flex: 1;
+            padding: 8px 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        .analysis-box {
+            background: white;
+            padding: 16px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
         }
         .audio-player {
             width: 100%;
-            margin: 20px 0;
+            margin: 16px 0;
         }
-        
-        /* 反馈区域 */
-        .feedback-section {
-            margin-top: 20px;
-        }
-        .feedback-input {
-            width: 100%;
-            padding: 15px;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            font-size: 16px;
-            margin-bottom: 10px;
-        }
-        
-        /* 提示信息 */
         .tip-box {
-            background: #fff3e0;
-            border-left: 4px solid #ff9800;
-            padding: 15px;
-            margin: 15px 0;
-            border-radius: 0 8px 8px 0;
+            background: #e3f2fd;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 13px;
+            color: #1976d2;
+            margin-top: 12px;
         }
-        .success-box {
-            background: #e8f5e9;
-            border-left: 4px solid #4caf50;
+        .loading {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #fff;
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
         }
-        
-        /* 音色选择 */
-        .voice-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 15px;
-            margin: 15px 0;
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .hidden-input {
+            display: none;
         }
-        .voice-card {
-            padding: 20px;
-            border: 2px solid #e0e0e0;
-            border-radius: 12px;
-            cursor: pointer;
-            text-align: center;
-            transition: all 0.3s;
-        }
-        .voice-card:hover { border-color: #667eea; }
-        .voice-card.active {
-            border-color: #667eea;
-            background: #f3e5f5;
-        }
-        .voice-card h4 { margin-bottom: 5px; }
-        .voice-card p { font-size: 14px; color: #666; }
-        
-        .hidden { display: none; }
     </style>
 </head>
 <body>
     <div id="root"></div>
-
+    
     <script type="text/babel">
-        const { useState, useEffect } = React;
         const API_BASE = 'http://localhost:8000';
+        
+        // 情感标签列表
+        const EMOTIONS = [
+            { value: '', label: '无' },
+            { value: '<|happy|>', label: '<|happy|> 开心' },
+            { value: '<|angry|>', label: '<|angry|> 生气' },
+            { value: '<|sad|>', label: '<|sad|> 悲伤' },
+            { value: '<|excited|>', label: '<|excited|> 兴奋' },
+            { value: '<|surprised|>', label: '<|surprised|> 惊讶' },
+            { value: '<|satisfied|>', label: '<|satisfied|> 满意' },
+            { value: '<|delighted|>', label: '<|delighted|> 高兴' },
+            { value: '<|scared|>', label: '<|scared|> 害怕' },
+            { value: '<|worried|>', label: '<|worried|> 担心' },
+            { value: '<|upset|>', label: '<|upset|> 沮丧' },
+            { value: '<|nervous|>', label: '<|nervous|> 紧张' },
+            { value: '<|frustrated|>', label: '<|frustrated|> 沮丧' },
+            { value: '<|depressed|>', label: '<|depressed|> 抑郁' },
+            { value: '<|empathetic|>', label: '<|empathetic|> 共情' },
+            { value: '<|embarrassed|>', label: '<|embarrassed|> 尴尬' },
+            { value: '<|disgusted|>', label: '<|disgusted|> 厌恶' },
+            { value: '<|moved|>', label: '<|moved|> 感动' },
+            { value: '<|proud|>', label: '<|proud|> 骄傲' },
+            { value: '<|relaxed|>', label: '<|relaxed|> 放松' },
+            { value: '<|grateful|>', label: '<|grateful|> 感激' },
+            { value: '<|confident|>', label: '<|confident|> 自信' },
+            { value: '<|interested|>', label: '<|interested|> 感兴趣' },
+            { value: '<|curious|>', label: '<|curious|> 好奇' },
+            { value: '<|confused|>', label: '<|confused|> 困惑' },
+            { value: '<|joyful|>', label: '<|joyful|> 快乐' },
+            { value: '<|disdainful|>', label: '<|disdainful|> 轻蔑' },
+            { value: '<|unhappy|>', label: '<|unhappy|> 不开心' },
+            { value: '<|anxious|>', label: '<|anxious|> 焦虑' },
+            { value: '<|hysterical|>', label: '<|hysterical|> 歇斯底里' },
+            { value: '<|indifferent|>', label: '<|indifferent|> 冷漠' },
+            { value: '<|impatient|>', label: '<|impatient|> 不耐烦' },
+            { value: '<|guilty|>', label: '<|guilty|> 内疚' },
+            { value: '<|scornful|>', label: '<|scornful|> 轻蔑' },
+            { value: '<|panicked|>', label: '<|panicked|> 恐慌' },
+            { value: '<|furious|>', label: '<|furious|> 愤怒' },
+            { value: '<|reluctant|>', label: '<|reluctant|> 不情愿' },
+            { value: '<|keen|>', label: '<|keen|> 渴望' },
+            { value: '<|disapproving|>', label: '<|disapproving|> 不赞成' },
+            { value: '<|negative|>', label: '<|negative|> 消极' },
+            { value: '<|denying|>', label: '<|denying|> 否认' },
+            { value: '<|astonished|>', label: '<|astonished|> 震惊' },
+            { value: '<|serious|>', label: '<|serious|> 严肃' },
+            { value: '<|sarcastic|>', label: '<|sarcastic|> 讽刺' },
+            { value: '<|conciliative|>', label: '<|conciliative|> 安抚' },
+            { value: '<|comforting|>', label: '<|comforting|> 安慰' },
+            { value: '<|sincere|>', label: '<|sincere|> 真诚' },
+            { value: '<|sneering|>', label: '<|sneering|> 嘲笑' },
+            { value: '<|hesitating|>', label: '<|hesitating|> 犹豫' },
+            { value: '<|yielding|>', label: '<|yielding|> 屈服' },
+            { value: '<|painful|>', label: '<|painful|> 痛苦' },
+            { value: '<|awkward|>', label: '<|awkward|> 尴尬' },
+            { value: '<|amused|>', label: '<|amused|> 逗乐' },
+        ];
+        
+        // 预设音色
+        const PRESET_VOICES = [
+            { id: 'xiaoxiao', name: '晓晓', icon: '👩' },
+            { id: 'xiaoyi', name: '小艺', icon: '👧' },
+            { id: 'xiaoming', name: '小明', icon: '👨' },
+            { id: 'xiaogang', name: '小刚', icon: '👦' },
+        ];
 
         function App() {
-            // 状态管理
-            const [voiceId, setVoiceId] = useState('xiaoxiao');
-            const [phase, setPhase] = useState(1); // 1:分析 2:合成 3:优化
-            const [text, setText] = useState('');
-            const [sessionId, setSessionId] = useState(null);
-            const [analysis, setAnalysis] = useState(null);
-            const [params, setParams] = useState({ speed: 1.0, pitch: 0, volume: 1.0, emotion_tag: '' });
-            const [audioUrl, setAudioUrl] = useState(null);
-            const [version, setVersion] = useState(0);
-            const [audioCount, setAudioCount] = useState(0);
-            const [feedback, setFeedback] = useState('');
-            const [tips, setTips] = useState([]);
-            const [voices, setVoices] = useState([]);
-            const [selectedVoice, setSelectedVoice] = useState('xiaoxiao');
-            const [referenceAudios, setReferenceAudios] = useState([]);
-            const [loading, setLoading] = useState(false);
+            // 状态
+            const [phase, setPhase] = React.useState(1); // 1:选择 2:分析 3:结果
+            const [text, setText] = React.useState('');
+            const [voiceId, setVoiceId] = React.useState('xiaoxiao');
+            const [customAudio, setCustomAudio] = React.useState(null);
+            const [sessionId, setSessionId] = React.useState(null);
+            const [analysis, setAnalysis] = React.useState(null);
+            const [params, setParams] = React.useState({ speed: 1.0, emotion_tag: '' });
+            const [audioUrl, setAudioUrl] = React.useState(null);
+            const [version, setVersion] = React.useState(0);
+            const [loading, setLoading] = React.useState(false);
+            
+            // 反馈相关
+            const [feedback, setFeedback] = React.useState('');
+            const [feedbackPhase, setFeedbackPhase] = React.useState('input'); // input, analyzed
+            const [feedbackResult, setFeedbackResult] = React.useState(null);
+            const [adjustedParams, setAdjustedParams] = React.useState(null);
 
-            // 获取预设音色列表
-            useEffect(() => {
-                fetch(`${API_BASE}/voices`)
-                    .then(r => r.json())
-                    .then(data => {
-                        setVoices(data.voices);
-                        // 默认选择第一个音色
-                        if (data.voices.length > 0 && selectedVoice === 'xiaoxiao') {
-                            setSelectedVoice(data.voices[0].id);
-                        }
-                    });
-            }, []);
+            // 文件输入引用
+            const fileInputRef = React.useRef(null);
 
-            // 阶段1: 智能分析
+            // 开始分析
             const startAnalysis = async () => {
-                if (!text) { alert('请输入文本'); return; }
-                if (!voiceId) { alert('请选择音色'); return; }
-
-                setLoading(true);
-                const formData = new FormData();
-                formData.append('text', text);
-                formData.append('voice_id', voiceId);
-                
-                // 如果是自定义音色，上传音频
-                if (voiceId === 'custom' && referenceAudios.length > 0) {
-                    formData.append('reference_audio', referenceAudios[0]);
+                if (!text.trim()) {
+                    alert('请输入要合成的文本');
+                    return;
+                }
+                if (voiceId === 'custom' && !customAudio) {
+                    alert('请先上传音频文件');
+                    return;
                 }
 
-                const res = await fetch(`${API_BASE}/synthesize/analyze`, {
-                    method: 'POST',
-                    body: formData
-                });
-                const data = await res.json();
-                
-                setSessionId(data.session_id);
-                setAnalysis(data.analysis);
-                setParams(data.suggested_params);
-                setPhase(2);
-                setLoading(false);
+                setLoading(true);
+                try {
+                    const formData = new FormData();
+                    formData.append('text', text);
+                    formData.append('voice_id', voiceId);
+                    if (voiceId === 'custom' && customAudio) {
+                        formData.append('reference_audio', customAudio);
+                    }
+
+                    const res = await fetch(`${API_BASE}/synthesize/analyze`, {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    if (!res.ok) {
+                        const err = await res.json();
+                        throw new Error(err.error || '分析失败');
+                    }
+                    
+                    const data = await res.json();
+                    setSessionId(data.session_id);
+                    setAnalysis(data.analysis);
+                    setParams(data.suggested_params || { speed: 1.0, emotion_tag: '' });
+                    setPhase(2);
+                } catch (err) {
+                    alert('分析失败: ' + err.message);
+                } finally {
+                    setLoading(false);
+                }
             };
 
-            // 阶段2: 合成
+            // 执行合成
             const doSynthesize = async () => {
                 setLoading(true);
-                const formData = new FormData();
-                formData.append('session_id', sessionId);
-                formData.append('speed', params.speed);
-                formData.append('pitch', params.pitch);
-                formData.append('volume', params.volume);
-                formData.append('emotion_tag', params.emotion_tag);
+                try {
+                    const formData = new FormData();
+                    formData.append('session_id', sessionId);
+                    formData.append('speed', params.speed);
+                    formData.append('emotion_tag', params.emotion_tag);
+                    if (voiceId === 'custom' && customAudio) {
+                        formData.append('reference_audio', customAudio);
+                    }
 
-                // 自定义音色上传音频
-                if (voiceId === 'custom' && referenceAudios.length > 0) {
-                    formData.append('reference_audio', referenceAudios[0]);
+                    const res = await fetch(`${API_BASE}/synthesize`, {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    if (!res.ok) {
+                        const err = await res.json();
+                        throw new Error(err.error || '合成失败');
+                    }
+                    
+                    const data = await res.json();
+                    setAudioUrl(data.audio_url);
+                    setVersion(data.version);
+                    setPhase(3);
+                    setFeedbackPhase('input');
+                    setFeedback('');
+                    setFeedbackResult(null);
+                } catch (err) {
+                    alert('合成失败: ' + err.message);
+                } finally {
+                    setLoading(false);
                 }
-
-                const res = await fetch(`${API_BASE}/synthesize`, {
-                    method: 'POST',
-                    body: formData
-                });
-                const data = await res.json();
-                
-                setAudioUrl(data.audio_url);
-                setVersion(data.version);
-                setAudioCount(data.audio_count);
-                setTips(data.tips || []);
-                setPhase(3);
-                setFeedbackPhase('input'); // 重置反馈阶段
-                setFeedback(''); // 清空反馈输入
-                setFeedbackAnalysis(null); // 清空分析结果
-                setLoading(false);
             };
 
-            // 阶段3: 反馈优化
-            const [feedbackAnalysis, setFeedbackAnalysis] = useState(null);
-            const [proposedParams, setProposedParams] = useState(null);
-            const [feedbackPhase, setFeedbackPhase] = useState('input'); // 'input', 'analyzed', 'applied'
+            // 提交反馈分析
+            const analyzeFeedback = async () => {
+                if (!feedback.trim()) {
+                    alert('请输入反馈');
+                    return;
+                }
 
-            // 提交反馈分析（不合成）
-            const submitFeedbackForAnalysis = async () => {
-                if (!feedback) { alert('请输入反馈'); return; }
-                
                 setLoading(true);
-                const formData = new FormData();
-                formData.append('session_id', sessionId);
-                formData.append('feedback', feedback);
+                try {
+                    const formData = new FormData();
+                    formData.append('session_id', sessionId);
+                    formData.append('feedback', feedback);
 
-                const res = await fetch(`${API_BASE}/synthesize/feedback/analyze`, {
-                    method: 'POST',
-                    body: formData
-                });
-                const data = await res.json();
-                
-                setFeedbackAnalysis(data);
-                setProposedParams(data.proposed_params);
-                setFeedbackPhase('analyzed');
-                setLoading(false);
+                    const res = await fetch(`${API_BASE}/synthesize/feedback/analyze`, {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    if (!res.ok) {
+                        const err = await res.json();
+                        throw new Error(err.error || '分析失败');
+                    }
+                    
+                    const data = await res.json();
+                    setFeedbackResult(data);
+                    setAdjustedParams(data.proposed_params);
+                    setFeedbackPhase('analyzed');
+                } catch (err) {
+                    alert('反馈分析失败: ' + err.message);
+                } finally {
+                    setLoading(false);
+                }
             };
 
             // 应用反馈并合成
-            const applyFeedbackAndSynthesize = async () => {
+            const applyFeedback = async () => {
                 setLoading(true);
-                
-                // 应用参数到 session
-                if (proposedParams) {
-                    setParams(proposedParams);
-                }
-                
-                const formData = new FormData();
-                formData.append('session_id', sessionId);
-                formData.append('apply_adjustments', 'true');
-                // 传递调整后的参数给后端
-                if (proposedParams) {
-                    formData.append('params', JSON.stringify(proposedParams));
-                }
+                try {
+                    const formData = new FormData();
+                    formData.append('session_id', sessionId);
+                    formData.append('apply_adjustments', 'true');
+                    if (adjustedParams) {
+                        formData.append('params', JSON.stringify(adjustedParams));
+                    }
 
-                const res = await fetch(`${API_BASE}/synthesize/feedback/apply`, {
-                    method: 'POST',
-                    body: formData
-                });
-                const data = await res.json();
-                
-                setAudioUrl(data.audio_url);
-                setVersion(data.version);
-                setAudioCount(data.audio_count);
-                setFeedbackPhase('input'); // 重置为输入状态，支持多次反馈
+                    const res = await fetch(`${API_BASE}/synthesize/feedback/apply`, {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    if (!res.ok) {
+                        const err = await res.json();
+                        throw new Error(err.error || '合成失败');
+                    }
+                    
+                    const data = await res.json();
+                    setAudioUrl(data.audio_url);
+                    setVersion(data.version);
+                    setPhase(3);
+                    setFeedbackPhase('input');
+                    setFeedback('');
+                    setFeedbackResult(null);
+                } catch (err) {
+                    alert('合成失败: ' + err.message);
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            // 重置
+            const reset = () => {
+                setPhase(1);
+                setText('');
+                setVoiceId('xiaoxiao');
+                setCustomAudio(null);
+                setSessionId(null);
+                setAnalysis(null);
+                setParams({ speed: 1.0, emotion_tag: '' });
+                setAudioUrl(null);
+                setVersion(0);
                 setFeedback('');
-                setFeedbackAnalysis(null);
-                setProposedParams(null);
-                setLoading(false);
-            };
-
-            // 取消反馈调整
-            const cancelFeedback = () => {
                 setFeedbackPhase('input');
-                setFeedbackAnalysis(null);
-                setProposedParams(null);
+                setFeedbackResult(null);
+                setAdjustedParams(null);
             };
 
-            // 添加更多音频
-            const addMoreAudio = async (file) => {
-                const formData = new FormData();
-                formData.append('audio', file);
-                
-                const res = await fetch(`${API_BASE}/session/${sessionId}/add-audio`, {
-                    method: 'POST',
-                    body: formData
-                });
-                const data = await res.json();
-                setAudioCount(data.audio_count);
-                alert(data.message);
+            // 处理文件选择
+            const handleFileSelect = (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    setCustomAudio(file);
+                    setVoiceId('custom');
+                }
             };
 
-            return (
-                <div className="container">
-                    <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
-                        <div>
-                            <h1>🎙️ Voice Agent</h1>
-                            <p className="subtitle">智能语音合成 - 支持情感分析与交互优化</p>
+            // 阶段1: 选择音色和输入文本
+            const renderPhase1 = () => (
+                <>
+                    <div className="section">
+                        <div className="section-title">1. 选择音色</div>
+                        <div className="voice-grid">
+                            {/* 上传音频选项 */}
+                            <div 
+                                className={`voice-card upload ${voiceId === 'custom' ? 'selected' : ''}`}
+                                onClick={() => fileInputRef.current?.click()}
+                            >
+                                <div style={{fontSize: '32px', marginBottom: '8px'}}>📤</div>
+                                <div>{customAudio ? customAudio.name : '上传音频'}</div>
+                                <div style={{fontSize: '12px', color: '#666', marginTop: '4px'}}>
+                                    {customAudio ? `${(customAudio.size/1024).toFixed(1)}KB` : '克隆音色'}
+                                </div>
+                            </div>
+                            <input 
+                                ref={fileInputRef}
+                                type="file" 
+                                accept="audio/*"
+                                className="hidden-input"
+                                onChange={handleFileSelect}
+                            />
+                            
+                            {/* 预设音色 */}
+                            {PRESET_VOICES.map(voice => (
+                                <div 
+                                    key={voice.id}
+                                    className={`voice-card ${voiceId === voice.id ? 'selected' : ''}`}
+                                    onClick={() => {
+                                        setVoiceId(voice.id);
+                                        setCustomAudio(null);
+                                    }}
+                                >
+                                    <div style={{fontSize: '32px', marginBottom: '8px'}}>{voice.icon}</div>
+                                    <div>{voice.name}</div>
+                                </div>
+                            ))}
                         </div>
-                        {(phase > 1 || mode) && (
-                            <button className="btn btn-secondary" onClick={() => { setPhase(1); setText(''); setFeedbackPhase('input'); setMode(null); setAudioUrl(''); setSessionId(''); setAnalysis(null); }}>
-                                📝 新建合成
-                            </button>
+                    </div>
+
+                    <div className="section">
+                        <div className="section-title">2. 输入文本</div>
+                        <textarea 
+                            value={text}
+                            onChange={(e) => setText(e.target.value)}
+                            placeholder="请输入要合成的文字..."
+                        />
+                        <button className="btn btn-primary" onClick={startAnalysis} disabled={loading} style={{marginTop: '12px'}}>
+                            {loading ? <span className="loading"></span> : '🔍'} 智能分析
+                        </button>
+                    </div>
+                </>
+            );
+
+            // 阶段2: 分析结果和参数调整
+            const renderPhase2 = () => (
+                <>
+                    <div className="section">
+                        <div className="section-title">📊 分析结果</div>
+                        <div className="analysis-box">
+                            <div className="param-row">
+                                <span className="param-label">场景</span>
+                                <span>{analysis?.scene || '-'}</span>
+                            </div>
+                            <div className="param-row">
+                                <span className="param-label">情感</span>
+                                <span>{analysis?.emotion || '-'}</span>
+                            </div>
+                            <div className="param-row">
+                                <span className="param-label">理由</span>
+                                <span>{analysis?.reason || '-'}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="section">
+                        <div className="section-title">⚙️ 合成参数</div>
+                        
+                        <div className="param-row">
+                            <span className="param-label">语速</span>
+                            <input 
+                                type="range" 
+                                min="0.5" 
+                                max="2.0" 
+                                step="0.1"
+                                value={params.speed}
+                                onChange={(e) => setParams({...params, speed: parseFloat(e.target.value)})}
+                            />
+                            <span style={{minWidth: '50px'}}>{params.speed}x</span>
+                        </div>
+                        
+                        <div className="param-row">
+                            <span className="param-label">情感标签</span>
+                            <select 
+                                value={params.emotion_tag}
+                                onChange={(e) => setParams({...params, emotion_tag: e.target.value})}
+                            >
+                                {EMOTIONS.map(e => (
+                                    <option key={e.value} value={e.value}>{e.label}</option>
+                                ))}
+                            </select>
+                        </div>
+
+                        <button className="btn btn-primary" onClick={doSynthesize} disabled={loading} style={{marginTop: '12px'}}>
+                            {loading ? <span className="loading"></span> : '🎵'} 开始合成
+                        </button>
+                    </div>
+                </>
+            );
+
+            // 阶段3: 播放和反馈
+            const renderPhase3 = () => (
+                <>
+                    <div className="section">
+                        <div className="section-title">🎧 合成结果（第{version}版）</div>
+                        {audioUrl && (
+                            <audio 
+                                controls 
+                                src={`${API_BASE}${audioUrl}`} 
+                                className="audio-player"
+                            />
                         )}
                     </div>
 
-                    {/* 步骤指示器 */}
-                    <div className="steps">
-                        <div className={`step ${phase >= 1 ? 'active' : ''}`}>
-                            <div className="step-number">1</div>
-                            <span>输入&分析</span>
-                        </div>
-                        <div className="step-line"></div>
-                        <div className={`step ${phase >= 2 ? 'active' : ''}`}>
-                            <div className="step-number">2</div>
-                            <span>合成</span>
-                        </div>
-                        <div className="step-line"></div>
-                        <div className={`step ${phase >= 3 ? 'active' : ''}`}>
-                            <div className="step-number">3</div>
-                            <span>优化</span>
-                        </div>
-                    </div>
-
-                    {/* 阶段1: 选择音色和输入 */}
-                    {phase === 1 && (
-                        <>
-                            {/* 音色选择 */}
-                            <div className="section">
-                                <div className="section-title">1. 选择音色</div>
-                                <div className="voice-grid">
-                                    {/* 上传音频选项 */}
-                                    <div 
-                                        className={`voice-card ${voiceId === 'custom' ? 'selected' : ''}`}
-                                        onClick={() => {
-                                            setVoiceId('custom');
-                                            // 触发文件选择
-                                            document.getElementById('custom-audio-input').click();
-                                        }}
-                                        style={{border: '2px dashed #667eea', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column'}}
-                                    >
-                                        <div style={{fontSize: '32px', marginBottom: '8px'}}>📤</div>
-                                        <div>上传音频</div>
-                                        <div style={{fontSize: '12px', color: '#666', marginTop: '4px'}}>克隆音色</div>
-                                    </div>
-                                    
-                                    {/* 隐藏的文件输入 */}
-                                    <input 
-                                        id="custom-audio-input"
-                                        type="file" 
-                                        accept="audio/*" 
-                                        style={{display: 'none'}}
-                                        onChange={(e) => {
-                                            if (e.target.files[0]) {
-                                                setReferenceAudios([e.target.files[0]]);
-                                                setVoiceId('custom');
-                                            }
-                                        }}
-                                    />
-                                    
-                                    {/* 预设音色 */}
-                                    {presetVoices.map(voice => (
-                                        <div 
-                                            key={voice.id}
-                                            className={`voice-card ${voiceId === voice.id ? 'selected' : ''}`}
-                                            onClick={() => setVoiceId(voice.id)}
-                                        >
-                                            <div style={{fontSize: '32px', marginBottom: '8px'}}>{voice.icon}</div>
-                                            <div>{voice.name}</div>
-                                            <button 
-                                                className="btn btn-secondary" 
-                                                style={{marginTop: '8px', fontSize: '12px', padding: '4px 8px'}}
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    const audioUrl = `${API_BASE}/voice_sample/${voice.id}`;
-                                                    console.log('Playing:', audioUrl);
-                                                    const audio = new Audio(audioUrl);
-                                                    audio.play().catch(err => console.error('Play error:', err));
-                                                }}
-                                            >
-                                                ▶️ 试听
-                                            </button>
-                                        </div>
-                                    ))}
-                                </div>                                
-                            </div>
-                            
-                            {/* 显示已上传的音频 */}
-                            {voiceId === 'custom' && referenceAudios.length > 0 && (
-                                <div className="section">
-                                    <div className="section-title">已上传音频</div>
-                                    <div className="tip-box">
-                                        ✅ {referenceAudios[0].name} ({(referenceAudios[0].size / 1024).toFixed(1)} KB)
-                                    </div>                                </div>
-                            )}
-
-                            {/* 文本输入 */}
-                            <div className="section">
-                                <div className="section-title">2. 输入文本</div>
+                    <div className="section">
+                        <div className="section-title">💬 反馈优化</div>
+                        
+                        {feedbackPhase === 'input' && (
+                            <>
                                 <textarea 
-                                    value={text}
-                                    onChange={(e) => setText(e.target.value)}
-                                    placeholder="请输入要合成的文字..."
+                                    value={feedback}
+                                    onChange={(e) => setFeedback(e.target.value)}
+                                    placeholder="描述你的感受，如：语速太快、情感不对..."
+                                    style={{minHeight: '60px'}}
                                 />
-                                <button className="btn btn-primary" onClick={startAnalysis} disabled={loading}>
-                                    {loading ? '分析中...' : '🔍 智能分析'}
+                                <div style={{marginTop: '12px'}}>
+                                    <button className="btn btn-primary" onClick={analyzeFeedback} disabled={loading}>
+                                        {loading ? <span className="loading"></span> : '🤖'} 分析反馈
+                                    </button>
+                                    <button className="btn btn-secondary" onClick={reset} style={{marginLeft: '10px'}}>
+                                        🔄 重新开始
+                                    </button>
+                                </div>
+                            </>
+                        )}
+
+                        {feedbackPhase === 'analyzed' && feedbackResult && (
+                            <>
+                                <div className="analysis-box" style={{marginBottom: '15px'}}>
+                                    <div style={{marginBottom: '10px'}}>
+                                        <strong>🤖 大模型理解：</strong>
+                                        <p style={{marginTop: '5px'}}>{feedbackResult.analysis}</p>
+                                    </div>
+                                    
+                                    <div style={{marginBottom: '10px'}}>
+                                        <strong>📊 参数调整：</strong>
+                                    </div>
+                                    
+                                    <div className="param-row">
+                                        <span className="param-label">语速</span>
+                                        <input 
+                                            type="range" 
+                                            min="0.5" 
+                                            max="2.0" 
+                                            step="0.1"
+                                            value={adjustedParams?.speed ?? params.speed}
+                                            onChange={(e) => setAdjustedParams({...adjustedParams, speed: parseFloat(e.target.value)})}
+                                        />
+                                        <span>{adjustedParams?.speed ?? params.speed}x</span>
+                                    </div>
+                                    
+                                    <div className="param-row">
+                                        <span className="param-label">情感</span>
+                                        <select 
+                                            value={adjustedParams?.emotion_tag ?? params.emotion_tag}
+                                            onChange={(e) => setAdjustedParams({...adjustedParams, emotion_tag: e.target.value})}
+                                        >
+                                            {EMOTIONS.map(e => (
+                                                <option key={e.value} value={e.value}>{e.label}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                </div>
+                                
+                                <button className="btn btn-success" onClick={applyFeedback} disabled={loading}>
+                                    {loading ? <span className="loading"></span> : '✅'} 确认并重新合成
                                 </button>
-                            </div>
-                        </>
-                            {/* 阶段2: 分析结果 & 确认合成 */}
-                            {phase === 2 && analysis && (
-                                <>
-                                    <div className="section">
-                                        <div className="section-title">📊 智能分析结果</div>
-                                        <div className="analysis-box">
-                                            <div className="param-row">
-                                                <span className="param-label">场景</span>
-                                                <span className="param-value">{analysis.scene}</span>
-                                            </div>
-                                            <div className="param-row">
-                                                <span className="param-label">情感</span>
-                                                <span className="param-value">{analysis.emotion}</span>
-                                            </div>
-                                            <div className="param-row">
-                                                <span className="param-label">分析理由</span>
-                                                <span>{analysis.reason}</span>
-                                            </div>
-                                        </div>
-                                    </div>
+                                <button className="btn btn-secondary" onClick={() => setFeedbackPhase('input')} style={{marginLeft: '10px'}}>
+                                    ❌ 取消
+                                </button>
+                            </>
+                        )}
+                    </div>
+                </>
+            );
 
-                                    <div className="section">
-                                        <div className="section-title">⚙️ 合成参数（可调整）</div>
-                                        <div className="param-row">
-                                            <span className="param-label">语速</span>
-                                            <input 
-                                                type="range" min="0.5" max="2.0" step="0.1"
-                                                value={params.speed}
-                                                onChange={(e) => setParams({...params, speed: parseFloat(e.target.value)})}
-                                            />
-                                            <span>{params.speed}</span>
-                                        </div>
-                                        <div className="param-row">
-                                            <span className="param-label">情感标签</span>
-                                            <select 
-                                                value={params.emotion_tag}
-                                                onChange={(e) => setParams({...params, emotion_tag: e.target.value})}
-                                            >
-                                                <option value="">无</option>
-                                                <option value="<|happy|>">{'<|happy|> 开心'}</option>
-                                                <option value="<|angry|>">{'<|angry|> 生气'}</option>
-                                                <option value="<|sad|>">{'<|sad|> 悲伤'}</option>
-                                                <option value="<|excited|>">{'<|excited|> 兴奋'}</option>
-                                                <option value="<|surprised|>">{'<|surprised|> 惊讶'}</option>
-                                                <option value="<|satisfied|>">{'<|satisfied|> 满意'}</option>
-                                                <option value="<|delighted|>">{'<|delighted|> 高兴'}</option>
-                                                <option value="<|scared|>">{'<|scared|> 害怕'}</option>
-                                                <option value="<|worried|>">{'<|worried|> 担心'}</option>
-                                                <option value="<|upset|>">{'<|upset|> 沮丧'}</option>
-                                                <option value="<|nervous|>">{'<|nervous|> 紧张'}</option>
-                                                <option value="<|frustrated|>">{'<|frustrated|> 沮丧'}</option>
-                                                <option value="<|depressed|>">{'<|depressed|> 抑郁'}</option>
-                                                <option value="<|empathetic|>">{'<|empathetic|> 共情'}</option>
-                                                <option value="<|embarrassed|>">{'<|embarrassed|> 尴尬'}</option>
-                                                <option value="<|disgusted|>">{'<|disgusted|> 厌恶'}</option>
-                                                <option value="<|moved|>">{'<|moved|> 感动'}</option>
-                                                <option value="<|proud|>">{'<|proud|> 骄傲'}</option>
-                                                <option value="<|relaxed|>">{'<|relaxed|> 放松'}</option>
-                                                <option value="<|grateful|>">{'<|grateful|> 感激'}</option>
-                                                <option value="<|confident|>">{'<|confident|> 自信'}</option>
-                                                <option value="<|interested|>">{'<|interested|> 感兴趣'}</option>
-                                                <option value="<|curious|>">{'<|curious|> 好奇'}</option>
-                                                <option value="<|confused|>">{'<|confused|> 困惑'}</option>
-                                                <option value="<|joyful|>">{'<|joyful|> 快乐'}</option>
-                                                <option value="<|disdainful|>">{'<|disdainful|> 轻蔑'}</option>
-                                                <option value="<|unhappy|>">{'<|unhappy|> 不开心'}</option>
-                                                <option value="<|anxious|>">{'<|anxious|> 焦虑'}</option>
-                                                <option value="<|hysterical|>">{'<|hysterical|> 歇斯底里'}</option>
-                                                <option value="<|indifferent|>">{'<|indifferent|> 冷漠'}</option>
-                                                <option value="<|impatient|>">{'<|impatient|> 不耐烦'}</option>
-                                                <option value="<|guilty|>">{'<|guilty|> 内疚'}</option>
-                                                <option value="<|scornful|>">{'<|scornful|> 轻蔑'}</option>
-                                                <option value="<|panicked|>">{'<|panicked|> 恐慌'}</option>
-                                                <option value="<|furious|>">{'<|furious|> 愤怒'}</option>
-                                                <option value="<|reluctant|>">{'<|reluctant|> 不情愿'}</option>
-                                                <option value="<|keen|>">{'<|keen|> 渴望'}</option>
-                                                <option value="<|disapproving|>">{'<|disapproving|> 不赞成'}</option>
-                                                <option value="<|negative|>">{'<|negative|> 消极'}</option>
-                                                <option value="<|denying|>">{'<|denying|> 否认'}</option>
-                                                <option value="<|astonished|>">{'<|astonished|> 震惊'}</option>
-                                                <option value="<|serious|>">{'<|serious|> 严肃'}</option>
-                                                <option value="<|sarcastic|>">{'<|sarcastic|> 讽刺'}</option>
-                                                <option value="<|conciliative|>">{'<|conciliative|> 安抚'}</option>
-                                                <option value="<|comforting|>">{'<|comforting|> 安慰'}</option>
-                                                <option value="<|sincere|>">{'<|sincere|> 真诚'}</option>
-                                                <option value="<|sneering|>">{'<|sneering|> 嘲笑'}</option>
-                                                <option value="<|hesitating|>">{'<|hesitating|> 犹豫'}</option>
-                                                <option value="<|yielding|>">{'<|yielding|> 屈服'}</option>
-                                                <option value="<|painful|>">{'<|painful|> 痛苦'}</option>
-                                                <option value="<|awkward|>">{'<|awkward|> 尴尬'}</option>
-                                                <option value="<|amused|>">{'<|amused|> 逗乐'}</option>
-                                                <option value="<|laughing|>">{'<|laughing|> 笑'}</option>
-                                                <option value="<|chuckling|>">{'<|chuckling|> 轻笑'}</option>
-                                                <option value="<|sobbing|>">{'<|sobbing|> 啜泣'}</option>
-                                                <option value="<|crying loudly|>">{'<|crying loudly|> 大哭'}</option>
-                                                <option value="<|sighing|>">{'<|sighing|> 叹息'}</option>
-                                                <option value="<|panting|>">{'<|panting|> 喘气'}</option>
-                                                <option value="<|groaning|>">{'<|groaning|> 呻吟'}</option>
-                                                <option value="<|crowd laughing|>">{'<|crowd laughing|> 人群笑声'}</option>
-                                                <option value="<|background laughter|>">{'<|background laughter|> 背景笑声'}</option>
-                                                <option value="<|audience laughing|>">{'<|audience laughing|> 观众笑声'}</option>
-                                                <option value="<|in a hurry tone|>">{'<|in a hurry tone|> 匆忙语气'}</option>
-                                                <option value="<|shouting|>">{'<|shouting|> 喊叫'}</option>
-                                                <option value="<|screaming|>">{'<|screaming|> 尖叫'}</option>
-                                                <option value="<|whispering|>">{'<|whispering|> 耳语'}</option>
-                                                <option value="<|soft tone|>">{'<|soft tone|> 柔和语气'}</option>
-                                            </select>
-                                        </div>
-                                        <button className="btn btn-primary" onClick={doSynthesize} disabled={loading}>
-                                            {loading ? '合成中...' : '🎵 开始合成'}
-                                        </button>
-                                    </div>
-                                </>
-                            )}
-
-                            {/* 阶段3: 播放 & 反馈 */}
-                            {phase === 3 && audioUrl && (
-                                <>
-                                    <div className="audio-section">
-                                        <div className="section-title">🎧 合成结果（第{version}版）</div>
-                                        <audio controls src={`${API_BASE}${audioUrl}`} className="audio-player" />
-                                        
-                                        {/* 显示参数调整结果 */}
-                                        {feedbackAnalysis && feedbackPhase === 'applied' && (
-                                            <div className="analysis-box" style={{marginBottom: '15px'}}>
-                                                <div style={{display: 'flex', alignItems: 'center', marginBottom: '10px'}}>
-                                                    <span style={{color: '#4caf50', marginRight: '8px'}}>✅</span>
-                                                    <span style={{fontWeight: 'bold'}}>已根据反馈调整参数</span>
-                                                </div>
-                                                <div style={{fontSize: '14px', color: '#666'}}>
-                                                    <div className="param-row" style={{margin: '5px 0'}}>
-                                                        <span className="param-label">语速</span>
-                                                        <span>{feedbackAnalysis.current_params.speed}</span>
-                                                        <span style={{margin: '0 8px'}}>→</span>
-                                                        <span style={{color: '#4caf50', fontWeight: 'bold'}}>{feedbackAnalysis.proposed_params.speed}</span>
-                                                    </div>
-                                                    {feedbackAnalysis.proposed_params.emotion_tag && (
-                                                        <div className="param-row" style={{margin: '5px 0'}}>
-                                                            <span className="param-label">情感</span>
-                                                            <span>{feedbackAnalysis.current_params.emotion_tag || '无'}</span>
-                                                            <span style={{margin: '0 8px'}}>→</span>
-                                                            <span style={{color: '#4caf50', fontWeight: 'bold'}}>{feedbackAnalysis.proposed_params.emotion_tag}</span>
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        )}
-                                        
-                                        {tips.length > 0 && (
-                                            <div className="tip-box">
-                                                {tips.map((tip, i) => <div key={i}>{tip}</div>)}
-                                            </div>
-                                        )}
-
-                                        {/* 添加更多音频 */}
-                                        {mode === 'clone' && audioCount < 3 && (
-                                            <div style={{marginTop: '15px'}}>
-                                                <input 
-                                                    type="file" 
-                                                    accept="audio/*"
-                                                    onChange={(e) => e.target.files[0] && addMoreAudio(e.target.files[0])}
-                                                />
-                                            </div>
-                                        )}
-                                    </div>
-
-                                    <div className="section feedback-section">
-                                        <div className="section-title">💬 反馈优化</div>
-                                        
-                                        {/* 输入反馈 - 默认显示 */}
-                                        {(feedbackPhase === 'input' || feedbackPhase === 'applied' || !feedbackPhase) && (
-                                            <>
-                                                {/* 显示当前参数和分析 */}
-                                                {analysis && (
-                                                    <div className="analysis-box" style={{marginBottom: '15px'}}>
-                                                        <h4 style={{marginBottom: '10px'}}>📊 当前参数与分析</h4>
-                                                        <div className="param-row">
-                                                            <span className="param-label">场景</span>
-                                                            <span className="param-value">{analysis.scene}</span>
-                                                        </div>
-                                                        <div className="param-row">
-                                                            <span className="param-label">情绪</span>
-                                                            <span className="param-value">{analysis.emotion}</span>
-                                                        </div>
-                                                        <div style={{marginTop: '10px', paddingTop: '10px', borderTop: '1px solid #e0e0e0'}}>
-                                                            <div className="param-row">
-                                                                <span className="param-label">语速</span>
-                                                                <span className="param-value">{params.speed}</span>
-                                                            </div>
-                                                            <div className="param-row">
-                                                                <span className="param-label">情感标签</span>
-                                                                <span className="param-value">{params.emotion_tag || '无'}</span>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                )}
-                                                
-                                                <p>试听后，描述您的感觉：</p>
-                                                <ul style={{margin: '10px 0', color: '#666'}}>
-                                                    <li>"语速太快，慢一点"</li>
-                                                    <li>"要更开心一点"</li>
-                                                    <li>"声音要更温柔"</li>
-                                                </ul>
-                                                <input 
-                                                    type="text"
-                                                    className="feedback-input"
-                                                    value={feedback}
-                                                    onChange={(e) => setFeedback(e.target.value)}
-                                                    placeholder="输入您的反馈..."
-                                                />
-                                                <button className="btn btn-success" onClick={submitFeedbackForAnalysis} disabled={loading}>
-                                                    {loading ? '分析中...' : '🔍 分析反馈'}
-                                                </button>
-                                            </>
-                                        )}
-                                        
-                                        {/* 显示分析结果，等待确认 */}
-                                        {feedbackPhase === 'analyzed' && feedbackAnalysis && (
-                                            <>
-                                                <div className="analysis-box" style={{marginBottom: '20px'}}>
-                                                    <h4 style={{marginBottom: '10px'}}>🤖 大模型理解</h4>
-                                                    <p style={{marginBottom: '15px', color: '#333'}}>{feedbackAnalysis.analysis}</p>
-                                                    
-                                                    <h4 style={{marginBottom: '10px'}}>📊 参数调整（可手动修改）</h4>
-                                                    
-                                                    {/* 语速调整 */}
-                                                    <div className="param-row" style={{marginBottom: '15px', alignItems: 'center'}}>
-                                                        <span className="param-label" style={{minWidth: '80px'}}>语速</span>
-                                                        <input 
-                                                            type="range" 
-                                                            min="0.5" 
-                                                            max="2.0" 
-                                                            step="0.1"
-                                                            value={proposedParams?.speed ?? feedbackAnalysis.proposed_params.speed}
-                                                            onChange={(e) => setProposedParams({...proposedParams, speed: parseFloat(e.target.value)})}
-                                                            style={{flex: 1, margin: '0 10px'}}
-                                                        />
-                                                        <span style={{minWidth: '50px', textAlign: 'right'}}>
-                                                            {proposedParams?.speed ?? feedbackAnalysis.proposed_params.speed}x
-                                                        </span>
-                                                    </div>
-                                                    
-                                                    {/* 情感标签调整 */}
-                                                    <div className="param-row" style={{marginBottom: '15px', alignItems: 'center'}}>
-                                                        <span className="param-label" style={{minWidth: '80px'}}>情感标签</span>
-                                                        <select 
-                                                            value={proposedParams?.emotion_tag || feedbackAnalysis?.proposed_params?.emotion_tag || ''}
-                                                            onChange={(e) => setProposedParams({...proposedParams, emotion_tag: e.target.value})}
-                                                            style={{flex: 1, padding: '8px', borderRadius: '4px', border: '1px solid #ddd'}}
-                                                        >
-                                                            <option value="">无</option>
-                                                            <option value="<|happy|>">{'<|happy|> 开心'}</option>
-                                                            <option value="<|angry|>">{'<|angry|> 生气'}</option>
-                                                            <option value="<|sad|>">{'<|sad|> 悲伤'}</option>
-                                                            <option value="<|excited|>">{'<|excited|> 兴奋'}</option>
-                                                            <option value="<|surprised|>">{'<|surprised|> 惊讶'}</option>
-                                                            <option value="<|satisfied|>">{'<|satisfied|> 满意'}</option>
-                                                            <option value="<|delighted|>">{'<|delighted|> 高兴'}</option>
-                                                            <option value="<|scared|>">{'<|scared|> 害怕'}</option>
-                                                            <option value="<|worried|>">{'<|worried|> 担心'}</option>
-                                                            <option value="<|upset|>">{'<|upset|> 沮丧'}</option>
-                                                            <option value="<|nervous|>">{'<|nervous|> 紧张'}</option>
-                                                            <option value="<|frustrated|>">{'<|frustrated|> 沮丧'}</option>
-                                                            <option value="<|depressed|>">{'<|depressed|> 抑郁'}</option>
-                                                            <option value="<|empathetic|>">{'<|empathetic|> 共情'}</option>
-                                                            <option value="<|embarrassed|>">{'<|embarrassed|> 尴尬'}</option>
-                                                            <option value="<|disgusted|>">{'<|disgusted|> 厌恶'}</option>
-                                                            <option value="<|moved|>">{'<|moved|> 感动'}</option>
-                                                            <option value="<|proud|>">{'<|proud|> 骄傲'}</option>
-                                                            <option value="<|relaxed|>">{'<|relaxed|> 放松'}</option>
-                                                            <option value="<|grateful|>">{'<|grateful|> 感激'}</option>
-                                                            <option value="<|confident|>">{'<|confident|> 自信'}</option>
-                                                            <option value="<|interested|>">{'<|interested|> 感兴趣'}</option>
-                                                            <option value="<|curious|>">{'<|curious|> 好奇'}</option>
-                                                            <option value="<|confused|>">{'<|confused|> 困惑'}</option>
-                                                            <option value="<|joyful|>">{'<|joyful|> 快乐'}</option>
-                                                            <option value="<|disdainful|>">{'<|disdainful|> 轻蔑'}</option>
-                                                            <option value="<|unhappy|>">{'<|unhappy|> 不开心'}</option>
-                                                            <option value="<|anxious|>">{'<|anxious|> 焦虑'}</option>
-                                                            <option value="<|hysterical|>">{'<|hysterical|> 歇斯底里'}</option>
-                                                            <option value="<|indifferent|>">{'<|indifferent|> 冷漠'}</option>
-                                                            <option value="<|impatient|>">{'<|impatient|> 不耐烦'}</option>
-                                                            <option value="<|guilty|>">{'<|guilty|> 内疚'}</option>
-                                                            <option value="<|scornful|>">{'<|scornful|> 轻蔑'}</option>
-                                                            <option value="<|panicked|>">{'<|panicked|> 恐慌'}</option>
-                                                            <option value="<|furious|>">{'<|furious|> 愤怒'}</option>
-                                                            <option value="<|reluctant|>">{'<|reluctant|> 不情愿'}</option>
-                                                            <option value="<|keen|>">{'<|keen|> 渴望'}</option>
-                                                            <option value="<|disapproving|>">{'<|disapproving|> 不赞成'}</option>
-                                                            <option value="<|negative|>">{'<|negative|> 消极'}</option>
-                                                            <option value="<|denying|>">{'<|denying|> 否认'}</option>
-                                                            <option value="<|astonished|>">{'<|astonished|> 震惊'}</option>
-                                                            <option value="<|serious|>">{'<|serious|> 严肃'}</option>
-                                                            <option value="<|sarcastic|>">{'<|sarcastic|> 讽刺'}</option>
-                                                            <option value="<|conciliative|>">{'<|conciliative|> 安抚'}</option>
-                                                            <option value="<|comforting|>">{'<|comforting|> 安慰'}</option>
-                                                            <option value="<|sincere|>">{'<|sincere|> 真诚'}</option>
-                                                            <option value="<|sneering|>">{'<|sneering|> 嘲笑'}</option>
-                                                            <option value="<|hesitating|>">{'<|hesitating|> 犹豫'}</option>
-                                                            <option value="<|yielding|>">{'<|yielding|> 屈服'}</option>
-                                                            <option value="<|painful|>">{'<|painful|> 痛苦'}</option>
-                                                            <option value="<|awkward|>">{'<|awkward|> 尴尬'}</option>
-                                                            <option value="<|amused|>">{'<|amused|> 逗乐'}</option>
-                                                            <option value="<|laughing|>">{'<|laughing|> 笑'}</option>
-                                                            <option value="<|chuckling|>">{'<|chuckling|> 轻笑'}</option>
-                                                            <option value="<|sobbing|>">{'<|sobbing|> 啜泣'}</option>
-                                                            <option value="<|crying loudly|>">{'<|crying loudly|> 大哭'}</option>
-                                                            <option value="<|sighing|>">{'<|sighing|> 叹息'}</option>
-                                                            <option value="<|panting|>">{'<|panting|> 喘气'}</option>
-                                                            <option value="<|groaning|>">{'<|groaning|> 呻吟'}</option>
-                                                            <option value="<|crowd laughing|>">{'<|crowd laughing|> 人群笑声'}</option>
-                                                            <option value="<|background laughter|>">{'<|background laughter|> 背景笑声'}</option>
-                                                            <option value="<|audience laughing|>">{'<|audience laughing|> 观众笑声'}</option>
-                                                            <option value="<|in a hurry tone|>">{'<|in a hurry tone|> 匆忙语气'}</option>
-                                                            <option value="<|shouting|>">{'<|shouting|> 喊叫'}</option>
-                                                            <option value="<|screaming|>">{'<|screaming|> 尖叫'}</option>
-                                                            <option value="<|whispering|>">{'<|whispering|> 耳语'}</option>
-                                                            <option value="<|soft tone|>">{'<|soft tone|> 柔和语气'}</option>
-                                                        </select>
-                                                    </div>
-                                                    
-                                                    <div style={{marginTop: '10px', paddingTop: '10px', borderTop: '1px solid #e0e0e0', color: '#666', fontSize: '12px'}}>
-                                                        💡 大模型建议：语速 {feedbackAnalysis.proposed_params.speed}x，情感 {feedbackAnalysis.proposed_params.emotion_tag || '无'}
-                                                    </div>
-                                                </div>
-                                                
-                                                {/* 确认按钮 */}
-                                                <button className="btn btn-success" onClick={applyFeedbackAndSynthesize} disabled={loading}>
-                                                    {loading ? '合成中...' : '✅ 确认并重新合成'}
-                                                </button>
-                                                <button className="btn btn-secondary" onClick={cancelFeedback} disabled={loading} style={{marginLeft: '10px'}}>
-                                                    ❌ 取消
-                                                </button>
-                                            </>
-                                        )}
-                                    </div>
-                                </>
-                            )}
-                        </>
-                    )}
+            return (
+                <div className="container">
+                    <h1>🎙️ Voice Agent</h1>
+                    {phase === 1 && renderPhase1()}
+                    {phase === 2 && renderPhase2()}
+                    {phase === 3 && renderPhase3()}
                 </div>
             );
         }
