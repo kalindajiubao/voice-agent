@@ -278,7 +278,7 @@ class LLMService:
 输出JSON：
 {{
     "scene": "场景",
-    "emotion": "英文情感标记，如(happy)、(angry)、(sad)等",
+    "emotion": "情感标记，如<|happy|>、<|angry|>、<|sad|>、<|excited|>、<|calm|>、<|surprised|>",
     "speed": 1.0,
     "reason": "详细分析理由"
 }}"""
@@ -449,10 +449,10 @@ class LLMService:
     "analysis": "详细分析过程...",
     "adjustments": {{
         "speed": 1.0,
-        "emotion_tag": "英文情感标记，如(happy)、(angry)等"
+        "emotion_tag": "情感标记，如<|happy|>、<|angry|>、<|sad|>、<|excited|>、<|calm|>、<|surprised|>"
     }},
     "function_calls": [
-        {{"function": "adjust_emotion", "params": {{"tag": "(happy)"}}, "reason": "..."}},
+        {{"function": "adjust_emotion", "params": {{"tag": "<|happy|>"}}, "reason": "..."}},
         {{"function": "adjust_speed", "params": {{"speed": 0.9}}, "reason": "..."}}
     ],
     "tips": ["提示1", "提示2"]
@@ -516,13 +516,17 @@ class LLMService:
         # 情感调整（去掉音调调整）
         emotion = ""
         if any(w in fb for w in ["开心", "高兴", "活泼"]):
-            emotion = "(happy)"
+            emotion = "<|happy|>"
         elif any(w in fb for w in ["生气", "愤怒", "严肃"]):
-            emotion = "(angry)"
+            emotion = "<|angry|>"
         elif any(w in fb for w in ["温柔", "柔和", "软"]):
-            emotion = "(soft)"
+            emotion = "<|calm|>"
         elif any(w in fb for w in ["悲伤", "难过"]):
-            emotion = "(sad)"
+            emotion = "<|sad|>"
+        elif any(w in fb for w in ["兴奋", "激动"]):
+            emotion = "<|excited|>"
+        elif any(w in fb for w in ["惊讶", "震惊"]):
+            emotion = "<|surprised|>"
         
         if emotion:
             adjustments["emotion_tag"] = emotion
