@@ -580,13 +580,26 @@ class FishSpeechService:
             if params.get("emotion_tag"):
                 emotion_tag = params['emotion_tag']
                 # 将 (emotion) 格式转换为 <|emotion|> 格式
+                # 支持中英文映射
                 emotion_map = {
+                    # 英文
                     "(happy)": "<|happy|>",
                     "(angry)": "<|angry|>",
                     "(sad)": "<|sad|>",
                     "(excited)": "<|excited|>",
                     "(surprised)": "<|surprised|>",
-                    "(calm)": "<|calm|>"
+                    "(calm)": "<|calm|>",
+                    # 中文映射
+                    "(开心)": "<|happy|>",
+                    "(高兴)": "<|happy|>",
+                    "(生气)": "<|angry|>",
+                    "(愤怒)": "<|angry|>",
+                    "(悲伤)": "<|sad|>",
+                    "(难过)": "<|sad|>",
+                    "(兴奋)": "<|excited|>",
+                    "(惊讶)": "<|surprised|>",
+                    "(平静)": "<|calm|>",
+                    "(冷静)": "<|calm|>"
                 }
                 if emotion_tag in emotion_map:
                     final_text = emotion_map[emotion_tag] + " " + final_text
