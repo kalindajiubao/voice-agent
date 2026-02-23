@@ -52,14 +52,19 @@ class AudioProcessor:
             
             # 加载音频
             audio = AudioSegment.from_wav(io.BytesIO(audio_bytes))
+            original_duration = len(audio) / 1000.0  # 转换为秒
+            print(f"[AudioProcessor] 原始音频时长: {original_duration:.2f}s, 帧率: {audio.frame_rate}")
             
             # 调整语速（改变帧率）
             if speed != 1.0:
                 # 改变播放速度（同时保持音调）
                 new_frame_rate = int(audio.frame_rate * speed)
+                print(f"[AudioProcessor] 调整帧率: {audio.frame_rate} -> {new_frame_rate}")
                 audio = audio._spawn(audio.raw_data, overrides={'frame_rate': new_frame_rate})
                 # 转换回标准帧率
                 audio = audio.set_frame_rate(24000)
+                new_duration = len(audio) / 1000.0
+                print(f"[AudioProcessor] 调整后音频时长: {new_duration:.2f}s")
             
             # 导出
             output = io.BytesIO()
@@ -67,10 +72,12 @@ class AudioProcessor:
             return output.getvalue()
             
         except ImportError:
-            print("警告: 未安装 pydub，跳过语速调整")
+            print("[AudioProcessor] 警告: 未安装 pydub，跳过语速调整")
             return audio_bytes
         except Exception as e:
-            print(f"语速调整失败: {e}")
+            print(f"[AudioProcessor] 语速调整失败: {e}")
+            import traceback
+            traceback.print_exc()
             return audio_bytes
 
 
@@ -880,9 +887,13 @@ async def synthesize(
         
         # 后处理：调整语速
         speed = session.current_params.get("speed", 1.0)
+        print(f"[语速调整] 当前速度: {speed}, 音频长度: {len(audio_data)} bytes")
         if speed != 1.0:
-            print(f"调整语速: {speed}x")
+            print(f"[语速调整] 开始调整语速: {speed}x")
             audio_data = AudioProcessor.adjust_speed(audio_data, speed)
+            print(f"[语速调整] 调整后音频长度: {len(audio_data)} bytes")
+        else:
+            print(f"[语速调整] 速度为1.0，跳过调整")
         
         # 保存音频到固定目录
         import os
