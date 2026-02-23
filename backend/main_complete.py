@@ -695,7 +695,17 @@ class FishSpeechService:
                 )
             
             if response.status_code == 200:
-                return response.content
+                audio_data = response.content
+                
+                # 统一后处理：调整语速
+                if params:
+                    speed = params.get("speed", 1.0)
+                    if speed != 1.0:
+                        print(f"[FishSpeechService] 调整语速: {speed}x")
+                        audio_data = AudioProcessor.adjust_speed(audio_data, speed)
+                
+                return audio_data
+            
             # 详细错误信息
             error_detail = f"HTTP {response.status_code}: {response.text}"
             print(f"[TTS 错误] {error_detail}")
@@ -903,17 +913,7 @@ async def synthesize(
                 params=session.current_params
             )
         
-        # 后处理：调整语速
-        speed = session.current_params.get("speed", 1.0)
-        print(f"[语速调整] 当前速度: {speed}, 音频长度: {len(audio_data)} bytes")
-        if speed != 1.0:
-            print(f"[语速调整] 开始调整语速: {speed}x")
-            audio_data = AudioProcessor.adjust_speed(audio_data, speed)
-            print(f"[语速调整] 调整后音频长度: {len(audio_data)} bytes")
-        else:
-            print(f"[语速调整] 速度为1.0，跳过调整")
-        
-        # 保存音频到固定目录
+        # 保存音频到固定目录（语速调整已在 FishSpeechService 中完成）
         import os
         os.makedirs("outputs", exist_ok=True)
         audio_filename = f"outputs/{session_id}_{session.version}.wav"
@@ -1034,17 +1034,7 @@ async def feedback_apply(
                 params=session.current_params
             )
         
-        # 后处理：调整语速
-        speed = session.current_params.get("speed", 1.0)
-        print(f"[语速调整] feedback_apply 速度: {speed}")
-        if speed != 1.0:
-            print(f"[语速调整] 开始调整: {speed}x")
-            audio_data = AudioProcessor.adjust_speed(audio_data, speed)
-            print(f"[语速调整] 调整完成")
-        else:
-            print(f"[语速调整] 速度为1.0，跳过调整")
-        
-        # 保存音频
+        # 保存音频（语速调整已在 FishSpeechService 中完成）
         os.makedirs("outputs", exist_ok=True)
         session.version += 1
         audio_filename = f"outputs/{session_id}_{session.version}.wav"
@@ -1128,15 +1118,7 @@ async def feedback(
                 params=session.current_params
             )
         
-        # 后处理：调整语速
-        speed = session.current_params.get("speed", 1.0)
-        print(f"[语速调整] feedback_apply 速度: {speed}")
-        if speed != 1.0:
-            print(f"[语速调整] 开始调整: {speed}x")
-            audio_data = AudioProcessor.adjust_speed(audio_data, speed)
-            print(f"[语速调整] 调整完成")
-        
-        # 保存音频
+        # 保存音频（语速调整已在 FishSpeechService 中完成）
         os.makedirs("outputs", exist_ok=True)
         session.version += 1
         audio_filename = f"outputs/{session_id}_{session.version}.wav"
